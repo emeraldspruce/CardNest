@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Database Test{% endblock %}
+
+{% block body %}
+<h1>Test page</h1>
+<p>This is a test page to check database functionality.</p>
+
+<ul>
+{% for card in cards %}
+    <li><a href="{{ card.url }}">{{ card.name }} | {{ card.issuer }}</a></li>
+{% endfor %}
+</ul>
+
+{% endblock %}
