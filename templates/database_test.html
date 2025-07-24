@@ -22,7 +22,7 @@
     {% endfor %}
 {% elif view == "user_cards" %}
     {% for card in cards %}
-        <li>{{ card.card_id }}</li>
+        <li><a href="{{ card.get('url', '#') }}"></a>{{ card.cardId }} | {{ card.name }}</a></li>
     {% endfor %}
 {% elif view == "all_cards" %}
     {% for card in cards %}

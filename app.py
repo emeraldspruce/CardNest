@@ -19,6 +19,14 @@ def first_page():
 
 @app.route("/second_page")
 def second_page():
+    global db
+    if db is None:
+        db = Database()
+
+    id = session.get('user_id')
+    if id is not None:
+        db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Cash"))
+        db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Plus"))
     return render_template("second_page.html")
 
 @app.route("/third_page")
@@ -58,7 +66,7 @@ def database_test():
     
     # Fetch all card data for testing purposes
     view = request.form.get("view")
-    user_id = request.form.get("user_id")
+    user_id = session.get('user_id')
     cards = []
     users = []
     raw = []
@@ -68,7 +76,7 @@ def database_test():
     elif view == "user_cards" and user_id:
         raw = db.get_user_cards(int(user_id))
         # raw = [(card_id,), (card_id,), ...]
-        cards = [card for (card,) in raw]
+        cards = [card for card in raw]
     elif view == "all_cards":
         cards = db.get_cards()
     

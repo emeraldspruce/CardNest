@@ -51,7 +51,8 @@ class Database:
                 CREATE TABLE IF NOT EXISTS user_cards (
                     user_id INTEGER NOT NULL,
                     card_id TEXT NOT NULL,
-                    FOREIGN KEY (user_id) REFERENCES users(id)
+                    FOREIGN KEY (user_id) REFERENCES users(id),
+                    UNIQUE (user_id, card_id)
                 )
             ''')
             conn.commit()
@@ -88,7 +89,7 @@ class Database:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO users (username, email, password)
+                INSERT OR IGNORE INTO users (username, email, password)
                 VALUES (?, ?, ?)
             ''', (username, email, password))
             conn.commit()
@@ -130,7 +131,7 @@ class Database:
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT INTO user_cards (user_id, card_id)
+                INSERT OR IGNORE INTO user_cards (user_id, card_id)
                 VALUES (?, ?)
             ''', (user_id, card_id))
             conn.commit()
@@ -142,7 +143,14 @@ class Database:
             cursor.execute('''
                 SELECT card_id FROM user_cards WHERE user_id = ?
             ''', (user_id,))
-            return cursor.fetchall()
+            ids = [row[0] for row in cursor.fetchall()]  # extract card_id strings
+            user_cards = []
+            for card_id in ids:
+                match = next((card for card in self.card_data if card.get('cardId') == card_id), None)
+                if match:
+                    user_cards.append(match)
+
+            return user_cards
 
     def remove_user_card(self, user_id, card_id):
         """Remove a credit card from a user's account."""
