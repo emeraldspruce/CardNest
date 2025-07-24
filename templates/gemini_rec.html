@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Gemini Rec{% endblock %}
+
+{% block body %}
+<h1>Gemini Powered Credit Card Recommender</h1>
+<form method="post" action="/gemini_rec">
+    <label for="description">Describe the credit card you want:</label><br>
+    <textarea id="description" name="description" rows="4" cols="50" required></textarea><br>
+    <button type="submit">Submit</button>
+</form>
+{% if message %}
+    <div style="margin-top:2em; padding:1em; border-radius:8px; background:#f8f8ff; box-shadow:0 2px 8px #eee;">
+        <h2 style="margin-top:0; color:#2a2a2a;">Recommended Card</h2>
+        <pre style="white-space:pre-wrap; word-break:break-word; background:none; border:none; color:#222; font-size:1.1em;">{{ message }}</pre>
+    </div>
+{% endif %}
+{% endblock %}
