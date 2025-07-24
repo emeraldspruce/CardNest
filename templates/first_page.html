@@ -3,7 +3,43 @@
 {% block title %}First{% endblock %}
 
 {% block body %}
-<h1>First Page</h1>
-<div id="firebaseui-auth-container"></div>
+<h2 class="login-form">Login</h2>
+<form id="login-form" class="needs-validation" novalidate>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email Address</label>
+        <input type="email" class="form-control" id="email" required/>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" required/>
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+    <button type="button" id="signup-btn" class="btn btn-secondary">Create Account</button>
+    <a href="#" id="forgot-password" class="btn btn-link">Forgot password?</a>
 
+</form>
+
+
+
+
+
+{% endblock %}
+{% block scripts %}
+<!-- Firebase compat libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    
+    <script>
+        const firebaseConfig = {
+        apiKey: "AIzaSyD-gRkZMPFuWZR8VugeSeoYoz9ycq7rWpk",
+        authDomain: "seo-project3-9fe19.firebaseapp.com",
+        projectId: "seo-project3-9fe19",
+        storageBucket: "seo-project3-9fe19.appspot.com",
+        messagingSenderId: "157679130761",
+        appId: "1:157679130761:web:d0253edcb8949d0b68ce58"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const auth = firebase.auth();
+    </script>
 {% endblock %}
