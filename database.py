@@ -28,9 +28,15 @@ class Database:
 
         self.init_db()
 
+    def get_connection(self):
+        conn = sqlite3.connect(self.db_name)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+
     def init_db(self):
         """Initialize the database and create the tables if they doesn't exist."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS users (
@@ -79,7 +85,7 @@ class Database:
     # All of the following methods are for managing the user table.
     def add_user(self, username, email, password):
         """Add a new user to the database."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 INSERT INTO users (username, email, password)
@@ -89,7 +95,7 @@ class Database:
 
     def get_user(self, username=None, email=None):
         """Retrieve a user by username or email."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             if username:
                 cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
@@ -99,9 +105,16 @@ class Database:
                 return None
             return cursor.fetchone()
 
+    def get_all_users(self):
+        """Retrieve all users from the database."""
+        with self.get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM users')
+            return cursor.fetchall()
+
     def update_user(self, user_id, username=None, email=None, password=None):
         """Update user information."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             if username:
                 cursor.execute('UPDATE users SET username = ? WHERE id = ?', (username, user_id))
@@ -114,7 +127,7 @@ class Database:
     # All of the following methods are for managing the users' credit cards.
     def add_user_card(self, user_id, card_id):
         """Add a credit card to a user's account."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 INSERT INTO user_cards (user_id, card_id)
@@ -124,7 +137,7 @@ class Database:
 
     def get_user_cards(self, user_id):
         """Retrieve all credit cards associated with a user."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 SELECT card_id FROM user_cards WHERE user_id = ?
@@ -133,7 +146,7 @@ class Database:
 
     def remove_user_card(self, user_id, card_id):
         """Remove a credit card from a user's account."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 DELETE FROM user_cards WHERE user_id = ? AND card_id = ?
@@ -143,14 +156,14 @@ class Database:
     # The following methods are for clearing the database.
     def clear_users(self):
         """Clear all users from the database."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('DELETE FROM users')
             conn.commit()
 
     def clear_user_cards(self):
         """Clear all user cards from the database."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('DELETE FROM user_cards')
             conn.commit()
@@ -159,7 +172,7 @@ class Database:
         """Clear the entire database."""
         self.clear_users()
         self.clear_user_cards()
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('DROP TABLE IF EXISTS users')
             cursor.execute('DROP TABLE IF EXISTS user_cards')
@@ -169,7 +182,7 @@ class Database:
     # Debugging methods.
     def print_users(self):
         """Print all users in the database."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM users')
             users = cursor.fetchall()
@@ -178,7 +191,7 @@ class Database:
 
     def print_user_cards(self, user_id):
         """Print all credit cards associated with a user."""
-        with sqlite3.connect(self.db_name) as conn:
+        with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 SELECT card_id FROM user_cards WHERE user_id = ?

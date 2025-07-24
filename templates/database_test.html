@@ -6,10 +6,31 @@
 <h1>Test page</h1>
 <p>This is a test page to check database functionality.</p>
 
+<form method="POST">
+    <button type="submit" name="view" value="users">Show All Users</button>
+    <button type="submit" name="view" value="user_cards">Show User's Cards</button>
+    <input type="text" name="user_id" placeholder="User ID">
+    <button type="submit" name="view" value="all_cards">Show All Cards</button>
+</form>
+
+<h2>View: {{ view or 'None' }}</h2>
+
 <ul>
-{% for card in cards %}
-    <li><a href="{{ card.url }}">{{ card.name }} | {{ card.issuer }}</a></li>
-{% endfor %}
+{% if view == "users" %}
+    {% for user in users %}
+        <li>User {{ user.id }}: {{ user.username }} | {{ user.email }} | {{ user.password }}</li>
+    {% endfor %}
+{% elif view == "user_cards" %}
+    {% for card in cards %}
+        <li>{{ card.card_id }}</li>
+    {% endfor %}
+{% elif view == "all_cards" %}
+    {% for card in cards %}
+        <li><a href="{{ card.get('url', '#') }}">{{ card.get('name') }} | {{ card.get('issuer') }}</a></li>
+    {% endfor %}
+{% else %}
+    <li>No data to display.</li>
+{% endif %}
 </ul>
 
 {% endblock %}
