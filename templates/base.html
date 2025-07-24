@@ -6,6 +6,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <!-- Firebase compat libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+
+    <!-- Firebase UI -->
+    <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
+
+    <!-- Firebase configuration -->
+<script>
+  //Initialize Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyD-gRkZMPFuWZR8VugeSeoYoz9ycq7rWpk",
+    authDomain: "seo-project3-9fe19.firebaseapp.com",
+    projectId: "seo-project3-9fe19",
+    storageBucket: "seo-project3-9fe19.appspot.com",
+    messagingSenderId: "157679130761",
+    appId: "1:157679130761:web:d0253edcb8949d0b68ce58",
+    measurementId: "G-WDG4454P3D"
+  };
+  firebase.initializeApp(firebaseConfig);
+
+  // Initialize FirebaseUI
+  const ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+  //Configure UI options
+  const uiConfig = {
+    signInOptions: [
+      firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+      firebase.auth.EmailAuthProvider.PROVIDER_ID
+    ],
+    signInSuccessUrl: '/',  // Redirect after successful login
+  };
+  ui.start('#firebaseui-auth-container', {
+  signInOptions: [
+    firebase.auth.EmailAuthProvider.PROVIDER_ID
+  ],
+  // Other config options...
+});
+
+  // Start the UI inside the container
+  ui.start('#firebaseui-auth-container', uiConfig);
+</script>
 </head>
 
 <body>
@@ -22,10 +65,13 @@
 
     <main>
         {% block body %}
+        <div id="firebaseui-auth-container"></div>
         <!-- Child templates insert their content here -->
         {% endblock %}
     </main>
 
     <!-- Put any global JS scripts under here -->
+
+</script>
 </body>
 </html>
