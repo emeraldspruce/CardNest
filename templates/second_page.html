@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Second{% endblock %}
+{% block title %}Upload Bank Statements{% endblock %}
 {% block scripts %}
 <script>
     auth.onAuthStateChanged((user) => {
@@ -12,5 +12,20 @@
 {% endblock %}
 
 {% block body %}
-<h1>Second Page</h1>
+<h1>Upload Your Bank Statements!</h1>
+<!-- Display flash messages -->
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="alert alert-success" role="alert">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<form action="{{ url_for('upload_statement') }}" method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+        <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+</form>
 {% endblock %}
