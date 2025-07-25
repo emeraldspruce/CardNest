@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 import uuid
 import os
 
+
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
 
