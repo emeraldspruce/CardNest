@@ -33,9 +33,9 @@
                         </li>
                     </ul>
                     <ul class="navbar-nav ms-auto">
-                        <li class="nav-item" id="logout-item" style="display: none;">
-                            <a class="nav-link" href="#" id="logout-link">Logout</a>
-                        </li>
+                        <li class="nav-item" id="auth-nav">
+                            <!-- Dynamic, show/hide based on auth state will handle with js-->
+                            </li>
 
 
                     </ul>
@@ -73,27 +73,28 @@
     const auth = firebase.auth();
 
     //Show or hide logout button
-    auth.onAuthStateChanged(user => {
-        const logoutItem = document.getElementById('logout-item');
-        if (logoutItem) {
-            logoutItem.style.display = user ? 'block' : 'none';
-        }
-    })
-    
-    //Handle logout click
-    document.addEventListener('DOMContentLoaded', () => {
-        const logoutBtn = document.getElementById('logout-link');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                auth.signOut().then(() => {
-                    window.location.href = '/'; // Redirect to home after logout
-                }).catch((error) => {
-                    console.error('Logout failed:', error);
-                });
+    auth.onAuthStateChanged((user => {
+        const authNav = document.getElementById('auth-nav');
+        if (user) {
+            //Logged in, show logout link
+            authNav.innerHTML = `
+                <a class="nav-link" href="#" id="logout-link">Logout</a>
+            `;
+
+            //Handle Logout click
+            document.getElementById('logout-link').addEventListener('click', async () => {
+                await auth.signOut();
+                window.location.href = '/'; // Redirect to home after logout
             });
         }
-    });
+        //Not logged in, show login link
+        else {
+            authNav.innerHTML = `
+                <a class="nav-link" href="{{ url_for('first_page') }}">Login</a>
+            `;
+        }
+    }));
+
     </script>
     <!-- Put any global JS scripts under here -->
     {% block scripts %}

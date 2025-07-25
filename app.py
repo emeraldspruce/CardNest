@@ -10,6 +10,11 @@ def init_app():
 init_app()
 
 @app.route("/")
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+@app.route("/first_page")
 def first_page():
     return render_template("first_page.html")
 
