@@ -1,33 +1,103 @@
 <!DOCTYPE html>
 <html lang="en-US">
+
 <head>
     <title>{% block title %}NOT IMPLEMENTED YET{% endblock %}</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}" />
+    <!--Bootstrap CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" />
+
+    
 </head>
 
 <body>
     <header>
         <!-- Navigation bar or header content can go here -->
         <!-- Example navbar so we can navigate -->
-        <nav>
-            <ul>
-                <li><a href="{{ url_for('first_page') }}">First Page</a></li>
-                <li><a href="{{ url_for('second_page') }}">Second Page</a></li>
-                <li><a href="{{ url_for('third_page') }}">Third Page</a></li>
-                <li><a href="{{ url_for('database_test') }}">Database Test</a></li>
-                <li><a href="{{ url_for('login') }}">Login</a></li>
-            </ul>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">APP NAME!!</a>
+                <div class="collapse navbar-collapse">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('first_page') }}">First Page</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('second_page') }}">Second Page</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('third_page') }}">Third Page</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item" id="logout-item" style="display: none;">
+                            <a class="nav-link" href="#" id="logout-link">Logout</a>
+                        </li>
+
+
+                    </ul>
+                </div>
+            </div>
+        </nav>
     </header>
 
-    <main>
+    <main class="container mt-4">
         {% block body %}
         <!-- Child templates insert their content here -->
         {% endblock %}
     </main>
 
+    
+    <!-- Bootstrap JS-->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Firebase compat libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+
+    <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyD-gRkZMPFuWZR8VugeSeoYoz9ycq7rWpk",
+        authDomain: "seo-project3-9fe19.firebaseapp.com",
+        projectId: "seo-project3-9fe19",
+        storageBucket: "seo-project3-9fe19.appspot.com",
+        messagingSenderId: "157679130761",
+        appId: "1:157679130761:web:d0253edcb8949d0b68ce58"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    //Show or hide logout button
+    auth.onAuthStateChanged(user => {
+        const logoutItem = document.getElementById('logout-item');
+        if (logoutItem) {
+            logoutItem.style.display = user ? 'block' : 'none';
+        }
+    })
+    
+    //Handle logout click
+    document.addEventListener('DOMContentLoaded', () => {
+        const logoutBtn = document.getElementById('logout-link');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                auth.signOut().then(() => {
+                    window.location.href = '/'; // Redirect to home after logout
+                }).catch((error) => {
+                    console.error('Logout failed:', error);
+                });
+            });
+        }
+    });
+    </script>
     <!-- Put any global JS scripts under here -->
+    {% block scripts %}
+    {% endblock %}
 </body>
+
 </html>
