@@ -13,9 +13,12 @@
         <label for="password" class="form-label">Password</label>
         <input type="password" class="form-control" id="password" required/>
     </div>
+    <div class="mb-3">
     <button type="submit" class="btn btn-primary">Login</button>
     <button type="button" id="signup-btn" class="btn btn-secondary">Create Account</button>
     <a href="#" id="forgot-password" class="btn btn-link">Forgot password?</a>
+    </div>
+    <div class="auth-status mt-3 text-danger"></div>
 
 </form>
 
@@ -26,20 +29,66 @@
 {% endblock %}
 {% block scripts %}
 <!-- Firebase compat libraries -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    
-    <script>
-        const firebaseConfig = {
-        apiKey: "AIzaSyD-gRkZMPFuWZR8VugeSeoYoz9ycq7rWpk",
-        authDomain: "seo-project3-9fe19.firebaseapp.com",
-        projectId: "seo-project3-9fe19",
-        storageBucket: "seo-project3-9fe19.appspot.com",
-        messagingSenderId: "157679130761",
-        appId: "1:157679130761:web:d0253edcb8949d0b68ce58"
-    };
-    firebase.initializeApp(firebaseConfig);
 
-    const auth = firebase.auth();
-    </script>
+    <script>
+    //See if user is  already logged in
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            window.location.href = "/second_page";
+        }
+    });
+
+    // Get DOM references
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const authStatus = document.querySelector(".auth-status");
+    const loginForm = document.getElementById("login-form");
+
+    // Login
+    loginForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        try {
+            const user = await auth.signInWithEmailAndPassword(email, password);
+            console.log("User logged in:", user);
+            window.location.href = "/second_page";
+        } catch (err) {
+            authStatus.innerHTML = err.message;
+        }
+    });
+
+    // Signup
+    document.getElementById("signup-btn").addEventListener("click", async () => {
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        if (!email || !password) {
+            authStatus.innerHTML = "Please enter both email and password.";
+            return;
+        }
+        try {
+            await auth.createUserWithEmailAndPassword(email, password);
+            window.location.href = "/second_page";
+        } catch (err) {
+            authStatus.innerHTML = err.message;
+        }
+    });
+
+    // Forgot Password
+    document.getElementById("forgot-password").addEventListener("click", async () => {
+        const email = emailInput.value.trim();
+        if (!email) {
+            authStatus.innerHTML = "Please enter your email to reset password.";
+            return;
+        }
+        try {
+            await auth.sendPasswordResetEmail(email);
+            authStatus.innerHTML = "Password reset email sent.";
+            authStatus.classList.remove("text-danger");
+            authStatus.classList.add("text-success");
+        } catch (err) {
+            authStatus.innerHTML = err.message;
+        }
+    });
+</script>
 {% endblock %}

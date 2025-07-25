@@ -17,7 +17,7 @@
     <header>
         <!-- Navigation bar or header content can go here -->
         <!-- Example navbar so we can navigate -->
-        <nav class="navbar navbar-expand-lg bg-body-tertiary">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
                 <a class="navbar-brand" href="#">APP NAME!!</a>
                 <div class="collapse navbar-collapse">
@@ -43,10 +43,31 @@
         {% endblock %}
     </main>
 
-    <!-- Put any global JS scripts under here -->
-     
+    
     <!-- Bootstrap JS-->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Firebase compat libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+
+    <script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyD-gRkZMPFuWZR8VugeSeoYoz9ycq7rWpk",
+        authDomain: "seo-project3-9fe19.firebaseapp.com",
+        projectId: "seo-project3-9fe19",
+        storageBucket: "seo-project3-9fe19.appspot.com",
+        messagingSenderId: "157679130761",
+        appId: "1:157679130761:web:d0253edcb8949d0b68ce58"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    </script>
+    <!-- Put any global JS scripts under here -->
+    {% block scripts %}
+    {% endblock %}
 </body>
 
 </html>
