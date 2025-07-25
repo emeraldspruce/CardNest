@@ -25,30 +25,9 @@ def gemini_rec():
     if request.method == "POST":
         description = request.form.get("description")
         if description:
-            # Call geminiCardOutput.py and pass the description as input
-            try:
-                result = subprocess.run(
-                    [sys.executable, "geminiCardOutput.py"],
-                    input=description.encode("utf-8"),
-                    capture_output=True,
-                    timeout=90
-                )
-                output = result.stdout.decode("utf-8")
-                if result.returncode != 0:
-                    output = f"An error occurred: {result.stderr.decode('utf-8')}"
-            except Exception as e:
-                output = f"An error occurred: {str(e)}"
+            output = get_recommended_card(description)
             return render_template("gemini_rec.html", message=output)
     return render_template("gemini_rec.html")
-
-@app.route("/third_page", methods=["GET", "POST"])
-def third_page():
-    if request.method == "POST":
-        description = request.form.get("description")
-        if description:
-            output = get_recommended_card(description)
-            return render_template("third_page.html", message=output)
-    return render_template("third_page.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
