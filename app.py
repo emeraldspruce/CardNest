@@ -1,5 +1,7 @@
 from flask import Flask, render_template, abort, request, session, redirect, url_for, flash
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename 
+import uuid
 import os
 
 app = Flask(__name__)
@@ -17,6 +19,12 @@ def first_page():
 def second_page():
     return render_template("second_page.html")
 
+UPLOAD_FOLDER = 'uploads'  
+os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+
 @app.route("/upload_statement", methods=["POST"])
 def upload_statement():
     if 'file' not in request.files:
@@ -29,10 +37,11 @@ def upload_statement():
         return redirect(url_for('second_page'))
 
     if file and file.filename.endswith('.csv'):
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
+        filename = secure_filename(file.filename) 
+        unique_filename = f"{uuid.uuid4().hex}_{filename}"  
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(filepath)
         flash("File uploaded successfully!")
-        # Optionally, process the CSV file here
         return redirect(url_for('second_page'))
     else:
         flash("Invalid file type. Please upload a CSV file.")
