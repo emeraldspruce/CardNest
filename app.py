@@ -5,6 +5,7 @@ import uuid
 import os
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET_KEY")
 
 def init_app():
     '''Runs once at the start to initialize the app with any necessary configurations.'''
@@ -22,7 +23,6 @@ def second_page():
 UPLOAD_FOLDER = 'uploads'  
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 
 
 @app.route("/upload_statement", methods=["POST"])
