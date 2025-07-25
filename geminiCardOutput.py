@@ -41,7 +41,7 @@ def load_credit_cards(filepath):
     except FileNotFoundError:
         print(f"Error: The file was not found at the expected path: {filepath}")
         print("Please make sure you have a 'data' folder in the same directory as the script,")
-        print("and that 'credit-card.json' is inside that 'data' folder.")
+        print("and that 'credit-cards.json' is inside that 'data' folder.")
         return None
     except json.JSONDecodeError:
         print(f"Error: The file '{filepath}' is not a valid JSON file.")
@@ -69,7 +69,7 @@ def find_best_card(card_list, user_query):
     Returns:
         dict: The dictionary of the recommended card, or None if an error occurs.
     """
-    if not API_KEY:
+    if not os.getenv("GEMINI_API_KEY"):
         print("Error: GEMINI_API_KEY environment variable not set.")
         return None
 
@@ -127,7 +127,7 @@ def find_best_card(card_list, user_query):
     except requests.exceptions.RequestException as e:
         print(f"An API error occurred: {e}")
         return None
-    except (KeyError, IndexError):
+    except (KeyError, IndexError, TypeError):
         print("Error: Could not parse the response from the Gemini API.")
         print("Raw response:", response.text)
         return None
