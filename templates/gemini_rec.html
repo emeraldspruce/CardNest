@@ -2,6 +2,16 @@
 
 {% block title %}Gemini Rec{% endblock %}
 
+{% block scripts %}
+<script>
+    auth.onAuthStateChanged((user) => {
+        if (!user) {
+            window.location.href = "/";
+        }
+    });
+</script>
+{% endblock %}
+
 {% block body %}
 <h1 style="font-size:2rem; font-weight:700; margin-bottom:1.5rem; color:#2a2a2a;">Gemini Powered Credit Card Recommender</h1>
 <form method="post" action="/gemini_rec" style="background:#fff; padding:2em 2em 1.5em 2em; border-radius:12px; box-shadow:0 2px 12px #e0e0e0; max-width:600px; margin:auto;">
@@ -9,6 +19,7 @@
     <textarea id="description" name="description" rows="4" cols="50" required style="width:100%; margin-top:0.5em; margin-bottom:1em; border-radius:8px; border:1px solid #ccc; padding:0.75em; font-size:1em;"></textarea><br>
     <button type="submit" style="background:#4f8cff; color:#fff; border:none; border-radius:6px; padding:0.7em 2em; font-size:1.1em; font-weight:600; cursor:pointer; transition:background 0.2s;">Submit</button>
 </form>
+
 {% if message %}
     {% set lines = message.split('\n') %}
     {% set name = lines[1].split(':', 1)[1].strip() if lines|length > 1 else '' %}
@@ -58,4 +69,5 @@
         </div>
     </div>
 {% endif %}
+
 {% endblock %}
