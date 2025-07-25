@@ -15,8 +15,21 @@ def init_app():
     '''Runs once at the start to initialize the app with any necessary configurations.'''
 
 init_app()
+@app.errorhandler(404)
+def page_not_found(e):
+    '''Handles 404 errors by rendering a custom 404 page.'''
+    return render_template("404.html"), 404
 
 @app.route("/")
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+@app.route("/profile")
+def profile():
+    return render_template("profile.html")
+
+@app.route("/first_page")
 def first_page():
     return render_template("first_page.html")
 
