@@ -32,6 +32,13 @@
                             <a class="nav-link" href="{{ url_for('third_page') }}">Third Page</a>
                         </li>
                     </ul>
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item" id="logout-item" style="display: none;">
+                            <a class="nav-link" href="#" id="logout-link">Logout</a>
+                        </li>
+
+
+                    </ul>
                 </div>
             </div>
         </nav>
@@ -64,6 +71,29 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+
+    //Show or hide logout button
+    auth.onAuthStateChanged(user => {
+        const logoutItem = document.getElementById('logout-item');
+        if (logoutItem) {
+            logoutItem.style.display = user ? 'block' : 'none';
+        }
+    })
+    
+    //Handle logout click
+    document.addEventListener('DOMContentLoaded', () => {
+        const logoutBtn = document.getElementById('logout-link');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                auth.signOut().then(() => {
+                    window.location.href = '/'; // Redirect to home after logout
+                }).catch((error) => {
+                    console.error('Logout failed:', error);
+                });
+            });
+        }
+    });
     </script>
     <!-- Put any global JS scripts under here -->
     {% block scripts %}
