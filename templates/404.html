@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block body %}
+  <div class="text-center mt-5">
+    <h1 class="display-4">404</h1>
+    <p class="lead">Oops! The page you're looking for doesn't exist.</p>
+    <a href="{{ url_for('first_page') }}" class="btn btn-primary">Go Home</a>
+  </div>
+{% endblock %}
