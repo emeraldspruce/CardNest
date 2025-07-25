@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Gemini Rec{% endblock %}
+
+{% block scripts %}
+<script>
+    auth.onAuthStateChanged((user) => {
+        if (!user) {
+            window.location.href = "/";
+        }
+    });
+</script>
+{% endblock %}
+
+{% block body %}
+<h1 style="font-size:2rem; font-weight:700; margin-bottom:1.5rem; color:#2a2a2a;">Gemini Powered Credit Card Recommender</h1>
+<form method="post" action="/gemini_rec" style="background:#fff; padding:2em 2em 1.5em 2em; border-radius:12px; box-shadow:0 2px 12px #e0e0e0; max-width:600px; margin:auto;">
+    <label for="description" style="font-weight:600; color:#333;">Describe the credit card you want:</label><br>
+    <textarea id="description" name="description" rows="4" cols="50" required style="width:100%; margin-top:0.5em; margin-bottom:1em; border-radius:8px; border:1px solid #ccc; padding:0.75em; font-size:1em;"></textarea><br>
+    <button type="submit" style="background:#4f8cff; color:#fff; border:none; border-radius:6px; padding:0.7em 2em; font-size:1.1em; font-weight:600; cursor:pointer; transition:background 0.2s;">Submit</button>
+</form>
+
+{% if message %}
+    {% set lines = message.split('\n') %}
+    {% set name = lines[1].split(':', 1)[1].strip() if lines|length > 1 else '' %}
+    {% set issuer = lines[2].split(':', 1)[1].strip() if lines|length > 2 else '' %}
+    {% set annual_fee = lines[3].split(':', 1)[1].strip() if lines|length > 3 else '' %}
+    {% set rewards = '' %}
+    {% set rewards_type = '' %}
+    {% set welcome_bonus = '' %}
+    {% set features = [] %}
+    {% set url = '' %}
+    {% for line in lines[4:] %}
+        {% if line.startswith('Rewards:') %}
+            {% set rewards = line.split(':', 1)[1].strip() %}
+        {% elif line.startswith('Rewards Type:') %}
+            {% set rewards_type = line.split(':', 1)[1].strip() %}
+        {% elif line.startswith('Welcome Bonus:') %}
+            {% set welcome_bonus = line.split(':', 1)[1].strip() %}
+        {% elif line.startswith('  - ') %}
+            {% set _ = features.append(line[4:].strip()) %}
+        {% elif line.startswith('More info:') %}
+            {% set url = line.split(':', 1)[1].strip() %}
+        {% endif %}
+    {% endfor %}
+    <div style="margin:2.5em auto 0 auto; max-width:600px;">
+        <div style="background:#f9fbff; border-radius:14px; box-shadow:0 2px 12px #e0e0e0; padding:2em 2em 1.5em 2em;">
+            <h2 style="margin-top:0; color:#2a2a2a; font-size:1.5em; font-weight:700;">Recommended Card</h2>
+            <div style="display:flex; flex-direction:column; gap:0.7em; font-size:1.1em;">
+                <div><span style="font-weight:600; color:#4f8cff;">Name:</span> {{ name }}</div>
+                <div><span style="font-weight:600; color:#4f8cff;">Issuer:</span> {{ issuer }}</div>
+                <div><span style="font-weight:600; color:#4f8cff;">Annual Fee:</span> {{ annual_fee }}</div>
+                {% if rewards_type %}<div><span style="font-weight:600; color:#4f8cff;">Rewards Type:</span> {{ rewards_type }}</div>{% endif %}
+                {% if rewards %}<div><span style="font-weight:600; color:#4f8cff;">Rewards:</span> {{ rewards }}</div>{% endif %}
+                {% if welcome_bonus %}<div><span style="font-weight:600; color:#4f8cff;">Welcome Bonus:</span> {{ welcome_bonus }}</div>{% endif %}
+                {% if features %}
+                    <div><span style="font-weight:600; color:#4f8cff;">Features:</span>
+                        <ul style="margin:0.5em 0 0 1.5em;">
+                        {% for feature in features %}
+                            <li>{{ feature }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                {% if url %}
+                    <div><a href="{{ url }}" target="_blank" style="color:#4f8cff; font-weight:600; text-decoration:underline;">More info</a></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}

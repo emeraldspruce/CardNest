@@ -3,6 +3,9 @@ from dotenv import load_dotenv
 from werkzeug.utils import secure_filename 
 import uuid
 import os
+import subprocess
+import sys
+from geminiCardOutput import get_recommended_card
 
 
 app = Flask(__name__)
@@ -51,6 +54,16 @@ def upload_statement():
 @app.route("/third_page")
 def third_page():
     return render_template("third_page.html")
+
+@app.route("/gemini_rec", methods=["GET", "POST"])
+def gemini_rec():
+    if request.method == "POST":
+        description = request.form.get("description")
+        if description:
+            output = get_recommended_card(description)
+            return render_template("gemini_rec.html", message=output)
+    return render_template("gemini_rec.html")
+
 
 if __name__ == "__main__":
     app.run(debug=True)
