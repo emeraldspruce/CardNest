@@ -36,7 +36,7 @@
 
 </head>
 
-<body>
+<body {% if require_auth %}style="visibility:hidden;"{% endif %}>
     <header>
         <!-- Navigation bar or header content can go here -->
         <!-- Example navbar so we can navigate -->
@@ -120,7 +120,20 @@
 
     </script>
     <!-- Put any global JS scripts under here -->
+    {% if require_auth %}
+    <script>
+  auth.onAuthStateChanged((user) => {
+  console.log("Auth state changed. User:", user);
+  if (!user) {
+    window.location.href = '/login';
+  } else {
+    document.body.style.visibility = 'visible';
+  }
+});
+</script>
+{% endif %}
     {% block scripts %}
+
     {% endblock %}
     <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
 <script>
