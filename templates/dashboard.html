@@ -29,8 +29,15 @@
         <tbody>
             {% for row in data %}
                 <tr>
-                    {% for value in row.values() %}
+                    {% for key,value in row.items() %}
+                    {% if key == 'Amount' %}
+                        <td class="{{'text-success' if value >= 0 else 'text-danger'}}">
+                        {{ value | format_currency }}</td>
+                    {% elif key == 'Date' %}
+                        <td>{{ value | format_date }}</td>
+                    {% else %}
                         <td>{{ value }}</td>
+                    {% endif %}
                     {% endfor %}
                 </tr>
             {% endfor %}

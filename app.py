@@ -7,6 +7,7 @@ import subprocess
 import sys
 from geminiCardOutput import get_recommended_card
 import pandas as pd
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -26,6 +27,30 @@ def page_not_found(e):
 @app.route("/login")
 def login():
     return render_template("login.html", require_auth=False)
+
+# Formatting csv date 
+@app.template_filter("format_date")
+def format_date(value):
+    if isinstance(value, str):
+        #We assume date is in 'YYYY-MM-DD' format
+        try:
+            date = datetime.strptime(value, '%Y-%m-%d')
+            return date.strftime('%B %d, %Y')  # Format as 'Jul, 28, 2025'
+        except Exception:
+            return value
+    return value
+
+# Format csv dollar values
+@app.template_filter("format_currency")
+def format_currency(value):
+    try: 
+        if isinstance(value, (int, float)):
+            return f"${abs(value):,.2f}" #Already int or float so just format
+        elif isinstance(value, str):
+            return f"${abs(float(value)):.2f}"  # Convert string to float and format
+    except Exception:
+        return value
+    return value
 
 @app.route("/profile")
 def profile():
