@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block body %}
+<h2 id="profile-header"></h2>
+
+<div class="mb-3">
+  <label class="form-label">Display Name</label>
+  <input type="text" id="display-name" class="form-control" />
+  <button class="btn btn-outline-primary mt-2" id="update-name-btn">Update Name</button>
+</div>
+
+<div class="mb-3">
+  <label class="form-label">Email</label>
+  <input type="email" id="email" class="form-control" readonly />
+  <small class="form-text text-muted"> Email is read only.</small>
+</div>
+
+<div class="mb-3">
+  <label class="form-label">New Password</label>
+  <input type="password" id="new-password" class="form-control" />
+
+  <label class="form-label">Re-enter New Password</label>
+  <input type="password" id="confirm-password" class="form-control" />
+
+  <button class="btn btn-outline-warning mt-2" id="update-password-btn">Change Password</button>
+</div>
+
+<div class="mb-3">
+  <p><strong>Email Verified:</strong> <span id="email-verified"></span></p>
+  <button class="btn btn-outline-secondary" id="verify-email-btn">Resend Verification</button>
+</div>
+
+<div class="mb-3">
+  <p><strong>Account Created:</strong> <span id="created-at"></span></p>
+</div>
+
+<div class="mb-3">
+  <button class="btn btn-danger" id="delete-account-btn">Delete Account</button>
+</div>
+
+<div id="status-msg" class="mt-3 text-info"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+auth.onAuthStateChanged((user) => {
+  if (!user) {
+    window.location.href = "/login";
+    return;
+  }
+  document.getElementById("profile-header").textContent = `Welcome back, ${user.displayName }`;
+
+  document.getElementById("display-name").value = user.displayName || "";
+  document.getElementById("email").value = user.email;
+
+  //Is user verified?
+  document.getElementById("email-verified").textContent;
+  const verifyBtn = document.getElementById("verify-email-btn");
+
+  if(user.emailVerified) {
+    document.getElementById("email-verified").textContent = "Yes";
+    verifyBtn.style.display = "none"; // Hide verify button if already verified
+  } else {
+    document.getElementById("email-verified").textContent = "No";
+    verifyBtn.style.display = "inline-block"; // Show verify button if not verified
+
+  }
+  //Format date of account creation
+  const createdAt = new Date(user.metadata.creationTime);
+  document.getElementById("created-at").textContent = createdAt.toLocaleDateString();   
+
+  const statusMsg = document.getElementById("status-msg");
+
+  // Update display name
+  document.getElementById("update-name-btn").addEventListener("click", async () => {
+    const newName = document.getElementById("display-name").value.trim();
+    try {
+      await user.updateProfile({ displayName: newName });
+      statusMsg.textContent = "Name updated successfully.";
+    } catch (err) {
+      statusMsg.textContent = err.message;
+    }
+  });
+
+  // Change password
+  document.getElementById("update-password-btn").addEventListener("click", async () => {
+    const newPassword = document.getElementById("new-password").value.trim();
+    const confirmPassword = document.getElementById("confirm-password").value.trim();
+    if(!newPassword || !confirmPassword) {
+      statusMsg.textContent = "Please enter both new password fields.";
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      statusMsg.textContent = "Passwords do not match.";
+      return;
+    }
+    if (!newPassword) {
+      statusMsg.textContent = "Please enter a new password.";
+      return;
+    }
+    if (newPassword.length < 6) {
+      statusMsg.textContent = "Password must be at least 6 characters.";
+      return;
+    }
+    try {
+      await user.updatePassword(newPassword);
+      statusMsg.textContent = "Password changed successfully.";
+    } catch (err) {
+      statusMsg.textContent = err.message;
+    }
+  });
+
+  // Resend email verification
+  document.getElementById("verify-email-btn").addEventListener("click", async () => {
+    try {
+      await user.sendEmailVerification();
+      statusMsg.textContent = "Verification email sent.";
+    } catch (err) {
+      statusMsg.textContent = err.message;
+    }
+  });
+
+  // Delete account
+  document.getElementById("delete-account-btn").addEventListener("click", async () => {
+    if (confirm("Are you sure you want to delete your account? This cannot be undone.")) {
+      try {
+        await user.delete();
+        window.location.href = "/login";
+      } catch (err) {
+        statusMsg.textContent = err.message;
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -10,7 +10,6 @@
     <!--Bootstrap CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" />
 
-    
 </head>
 
 <body>
@@ -19,23 +18,23 @@
         <!-- Example navbar so we can navigate -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">APP NAME!!</a>
+                <a class="navbar-brand" href="{{ url_for('first_page') }}">APP NAME!!</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav">
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('first_page') }}">First Page</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('second_page') }}">Second Page</a>
+                            <a class="nav-link" href="{{ url_for('second_page') }}">Upload Statement</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('third_page') }}">Third Page</a>
+                            <a class="nav-link" href="{{ url_for('gemini_rec') }}">Gemini Recommedation</a>
                         </li>
                     </ul>
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item" id="logout-item" style="display: none;">
-                            <a class="nav-link" href="#" id="logout-link">Logout</a>
-                        </li>
+                    <ul class="navbar-nav ms-auto" id="auth-nav">
+                    <!-- Dynamic, show/hide based on auth state will handle with js-->
+                            <!--Placeholder for login/logout link-->
+                            <!--Placeholder for profile link-->
 
 
                     </ul>
@@ -73,27 +72,28 @@
     const auth = firebase.auth();
 
     //Show or hide logout button
-    auth.onAuthStateChanged(user => {
-        const logoutItem = document.getElementById('logout-item');
-        if (logoutItem) {
-            logoutItem.style.display = user ? 'block' : 'none';
-        }
-    })
-    
-    //Handle logout click
-    document.addEventListener('DOMContentLoaded', () => {
-        const logoutBtn = document.getElementById('logout-link');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                auth.signOut().then(() => {
-                    window.location.href = '/'; // Redirect to home after logout
-                }).catch((error) => {
-                    console.error('Logout failed:', error);
-                });
+    auth.onAuthStateChanged((user => {
+        const authNav = document.getElementById('auth-nav');
+        if (user) {
+            //Logged in, show logout link and profile link
+            authNav.innerHTML = `
+            <li class="nav-item"><a class="nav-link" href="/profile">Profile</a></li>
+            <li class="nav-item"><a class="nav-link" href="#" id="logout-link">Logout</a></li>
+            `;
+            //Handle Logout click
+            document.getElementById('logout-link').addEventListener('click', async () => {
+                await auth.signOut();
+                window.location.href = '/login'; // Redirect to login after logout
             });
         }
-    });
+        //Not logged in, show login link
+        else {
+            authNav.innerHTML = `
+                <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+            `;
+        }
+    }));
+
     </script>
     <!-- Put any global JS scripts under here -->
     {% block scripts %}
