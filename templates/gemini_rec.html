@@ -23,7 +23,29 @@
 {% if message %}
     {% set lines = message.split('\n') %}
     {% set name = lines[1].split(':', 1)[1].strip() if lines|length > 1 else '' %}
-    {% set issuer = lines[2].split(':', 1)[1].strip() if lines|length > 2 else '' %}
+    {% set raw_issuer = lines[2].split(':', 1)[1].strip() if lines|length > 2 else '' %}
+    {% set issuer = '' %}
+    {% if raw_issuer %}
+        {% if raw_issuer == 'CAPITAL_ONE' %}
+            {% set issuer = 'Capital One' %}
+        {% elif raw_issuer == 'DISCOVER' %}
+            {% set issuer = 'Discover' %}
+        {% elif raw_issuer == 'AMEX' or raw_issuer == 'AMERICAN_EXPRESS' %}
+            {% set issuer = 'American Express' %}
+        {% elif raw_issuer == 'CHASE' %}
+            {% set issuer = 'Chase' %}
+        {% elif raw_issuer == 'CITI' or raw_issuer == 'CITIBANK' %}
+            {% set issuer = 'Citi' %}
+        {% elif raw_issuer == 'BOA' or raw_issuer == 'BANK_OF_AMERICA' %}
+            {% set issuer = 'Bank of America' %}
+        {% elif raw_issuer == 'WELLS_FARGO' %}
+            {% set issuer = 'Wells Fargo' %}
+        {% elif raw_issuer == 'US_BANK' %}
+            {% set issuer = 'U.S. Bank' %}
+        {% else %}
+            {% set issuer = raw_issuer.title().replace('_', ' ') %}
+        {% endif %}
+    {% endif %}
     {% set annual_fee = lines[3].split(':', 1)[1].strip() if lines|length > 3 else '' %}
     {% set rewards = '' %}
     {% set rewards_type = '' %}
