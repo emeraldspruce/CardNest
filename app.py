@@ -3,29 +3,47 @@ from dotenv import load_dotenv
 from database import Database 
 from werkzeug.utils import secure_filename 
 import uuid
+import firebase_admin
+from firebase_admin import credentials, auth
 import os
-import subprocess
-import sys
 from geminiCardOutput import get_recommended_card
 
 
 app = Flask(__name__)
-db = None
 app.secret_key = os.getenv("SECRET_KEY")
+cred = credentials.Certificate("path/to/your/firebase-service-account.json")
+firebase_admin.initialize_app(cred)
+db = None
+
 
 def init_app():
     '''Runs once at the start to initialize the app with any necessary configurations.'''
     db = Database()
-
 init_app()
+
 @app.errorhandler(404)
 def page_not_found(e):
     '''Handles 404 errors by rendering a custom 404 page.'''
     return render_template("404.html"), 404
 
 @app.route("/")
-@app.route("/login")
+@app.route("/login", methods=["POST"])
 def login():
+    data = request.get_json()
+    id_token = data.get("idToken")
+    try:
+        # Verify the ID token
+        decoded_token = auth.verify_id_token(id_token)
+        uid = decoded_token["uid"]
+        email = decoded_token.get("email")
+
+        # Optional: store in session
+        session["user"] = {
+            "uid": uid,
+            "email": email,
+        }
+    except Exception as e:
+        print(f"Login failed: {e}")
     return render_template("login.html")
 
 @app.route("/profile")

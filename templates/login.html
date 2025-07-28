@@ -52,6 +52,14 @@
         try {
             const user = await auth.signInWithEmailAndPassword(email, password);
             console.log("User logged in:", user);
+            const isToken = await user.user.getIdToken();
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ idToken }),
+            });
             window.location.href = "/home";
         } catch (err) {
             authStatus.innerHTML = err.message;
