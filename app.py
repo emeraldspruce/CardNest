@@ -36,6 +36,14 @@ def profile():
 def first_page():
     return render_template("first_page.html")
 
+@app.route("/browse_cards")
+def browse_cards():
+    global db
+    if db is None:
+        db = Database()
+    cards = db.get_cards()
+    return render_template("browse_cards.html", cards=cards)
+
 @app.route("/second_page", methods=["GET", "POST"])
 def second_page():
     global db

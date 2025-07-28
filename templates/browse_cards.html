@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Cards{% endblock %}
+
+{% block body %}
+  {% for card in cards %}
+    <div class="card">
+        <!-- <img src="{{ card.imageUrl }}" alt="Picture of {{ card.name }} credit card" class="card-image" /> -->
+        <div class="card-content">
+            <h3 class="card-title">{{ card.name }}</h3>
+            <p class="card-text">Issuer: {{ card.issuer }}</p>
+            <p class="card-text">Annual Fee: ${{ card.annualFee }}</p>
+        </div>
+        <button class="card-button" onclick="window.location.href='{{ card.url }}'">Add Card</button>
+        <button class="card-button" onclick="window.location.href='{{ card.url }}'">Find Out More</button>
+    </div>
+  {% endfor %}
+{% endblock %}
