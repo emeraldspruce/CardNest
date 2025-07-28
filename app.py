@@ -1,3 +1,4 @@
+from collections import defaultdict
 from flask import Flask, render_template, abort, request, session, redirect, url_for, flash
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename 
@@ -8,6 +9,7 @@ import sys
 from geminiCardOutput import get_recommended_card
 import pandas as pd
 from datetime import datetime
+from collections import defaultdict
 
 
 app = Flask(__name__)
@@ -59,7 +61,14 @@ def profile():
 @app.route("/dashboard")
 def dashboard():
     data = session.get("data", [])
-    return render_template("dashboard.html", require_auth=True, data=data)
+    categorized_totals = defaultdict(float)
+    for row in data:
+        category = row.get("Category", "Uncategorized")
+        amount = float(row.get("Amount", 0))
+        categorized_totals[category] += amount
+    categories = list(categorized_totals.keys())
+    amounts = [abs(categorized_totals[cat]) for cat in categories]
+    return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts)
 
 @app.route("/second_page", methods=["GET", "POST"])
 def second_page():
