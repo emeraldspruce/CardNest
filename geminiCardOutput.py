@@ -13,7 +13,7 @@ from database import Database
 API_KEY = os.getenv("GEMINI_API_KEY")
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
 
-def find_best_card(card_list, user_query, fail_num=0, fail_max=3):
+def find_best_card(card_list, user_query, fail_num=0, fail_max=5):
     """
     Uses the Gemini API to find the best card based on a user's query.
 
