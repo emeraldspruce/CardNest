@@ -67,7 +67,8 @@ def profile():
 def dashboard():
     data = session.get("data", [])
     categorized_totals = defaultdict(float)
-
+    net_balance = 0.0
+    
     #Get sorting params 
     sort_column = request.args.get("sort_column", "Date") #Default to sorting by Date
     sort_order = request.args.get("sort_order", "asc") #Default to ascending order
@@ -83,9 +84,16 @@ def dashboard():
         category = row.get("Category", "Uncategorized")
         amount = float(row.get("Amount", 0))
         categorized_totals[category] += amount
+        net_balance += amount
     categories = list(categorized_totals.keys())
     amounts = [abs(categorized_totals[cat]) for cat in categories]
-    return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order)
+    # Calculate income and expense totals
+    income_total = sum(amount for cat, amount in categorized_totals.items() if amount > 0)
+    expense_total = sum(abs(amount) for cat, amount in categorized_totals.items() if amount < 0)
+    
+    #Trim net balance to 2 decimal places
+    net_balance = round(net_balance, 2)
+    return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order, net_balance=net_balance, total_income=income_total, total_expenses=expense_total)
 
 @app.route("/second_page", methods=["GET", "POST"])
 def second_page():
