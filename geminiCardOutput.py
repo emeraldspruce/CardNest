@@ -173,12 +173,36 @@ def format_card(card):
     lines.append("------------------------")
     return "\n".join(lines)
 
+def simplify(cards):
+    """
+    Removes unused data from the cards JSON.
+
+    Args:
+        cards (list): The list of available credit cards.
+
+    Returns:
+        list: The list of availible credit cards simplified
+    """
+    return_cards = []
+    for card in cards:
+        simple_card = {}
+        simple_card["name"] = card["name"]
+        simple_card["issuer"] = card["issuer"]
+        simple_card["currency"] = card["currency"]
+        simple_card["annualFee"] = card["annualFee"]
+        simple_card["universalCashbackPercent"] = card["universalCashbackPercent"]
+        simple_card["url"] = card["url"]
+        simple_card["credits"] = card["credits"]
+        simple_card["offers"] = card["offers"]
+        return_cards.append(simple_card)
+    return return_cards
 
 def get_recommended_card(user_query, db):
     """
     Main function to run the credit card parser program.
     """
-    cards = db.get_cards()
+    cards_verbose = db.get_cards()
+    cards = simplify(cards_verbose)
     if not cards:
         return "Could not load credit card data."
     card = find_best_card(cards, user_query)
