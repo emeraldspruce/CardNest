@@ -85,7 +85,7 @@ def find_best_card(card_list, user_query, fail_num=0, fail_max=3):
         print(f"An API error occurred: {e}")
         fail_num += 1
         print(f"Number of fails: {fail_num}")
-        if fail_num - 1 < fail_max:
+        if fail_num < fail_max:
             return find_best_card(card_list, user_query, fail_num)
         return None
     except (KeyError, IndexError):
@@ -93,7 +93,7 @@ def find_best_card(card_list, user_query, fail_num=0, fail_max=3):
         print("Raw response:", response.text)
         fail_num += 1
         print(f"Number of fails: {fail_num}")
-        if fail_num - 1 < fail_max:
+        if fail_num < fail_max:
             return find_best_card(card_list, user_query, fail_num)
         return None
     except json.JSONDecodeError:
@@ -101,7 +101,7 @@ def find_best_card(card_list, user_query, fail_num=0, fail_max=3):
         print("Received text:", card_text)
         fail_num += 1
         print(f"Number of fails: {fail_num}")
-        if fail_num - 1 < fail_max:
+        if fail_num < fail_max:
             return find_best_card(card_list, user_query, fail_num)
         return None
 

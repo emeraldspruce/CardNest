@@ -34,7 +34,7 @@
     //See if user is  already logged in
     auth.onAuthStateChanged((user) => {
         if (user) {
-            window.location.href = "/first_page";
+            window.location.href = "/home";
         }
     });
 
@@ -52,7 +52,7 @@
         try {
             const user = await auth.signInWithEmailAndPassword(email, password);
             console.log("User logged in:", user);
-            window.location.href = "/first_page";
+            window.location.href = "/home";
         } catch (err) {
             authStatus.innerHTML = err.message;
         }
@@ -68,7 +68,7 @@
         }
         try {
             await auth.createUserWithEmailAndPassword(email, password);
-            window.location.href = "/second_page";
+            window.location.href = "/upload_page";
         } catch (err) {
             authStatus.innerHTML = err.message;
         }
