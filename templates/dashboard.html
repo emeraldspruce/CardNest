@@ -45,6 +45,13 @@
                 }
             }
         });
+
+        function sortTable(order, column){
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort_column', column);
+            url.searchParams.set('sort_order', order);
+            window.location.href = url.toString();
+        }
     </script>
 {% endblock %}
 
@@ -63,7 +70,17 @@
         <thead>
             <tr>
                 {% for col in data[0].keys() %}
-                    <th>{{ col }}</th>
+                <th>
+                    <div class="d-flex align-items-center justify-content-start">
+                    <span>{{ col }}</span>
+                    {% if col == 'Amount' or col =='Date' %}
+                        <select class="ms-2 form-select form-select-sm w-auto" style="width:90px;" onchange="sortTable(this.value, '{{ col }}')">
+                            <option value="asc" {% if sort_column == col and sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                            <option value="desc" {% if sort_column == col and sort_order == 'desc' %}selected{% endif %}>Descending</option>
+                        </select>
+                    {% endif %}
+                    </div>
+                </th>
                 {% endfor %}
             </tr>
         </thead>

@@ -1,4 +1,6 @@
 from collections import defaultdict
+
+from networkx import reverse
 from flask import Flask, render_template, abort, request, session, redirect, url_for, flash
 from dotenv import load_dotenv
 from database import Database 
@@ -50,9 +52,9 @@ def format_date(value):
 def format_currency(value):
     try: 
         if isinstance(value, (int, float)):
-            return f"${abs(value):,.2f}" #Already int or float so just format
+            return f"${(value):,.2f}" #Already int or float so just format
         elif isinstance(value, str):
-            return f"${abs(float(value)):.2f}"  # Convert string to float and format
+            return f"${(float(value)):.2f}"  # Convert string to float and format
     except Exception:
         return value
     return value
@@ -65,13 +67,25 @@ def profile():
 def dashboard():
     data = session.get("data", [])
     categorized_totals = defaultdict(float)
+
+    #Get sorting params 
+    sort_column = request.args.get("sort_column", "Date") #Default to sorting by Date
+    sort_order = request.args.get("sort_order", "asc") #Default to ascending order
+    reversed = sort_order == "desc"
+    if sort_column == 'Amount':
+        data.sort(key=lambda x: float(x.get("Amount", 0)), reverse=(reversed))
+    elif sort_column == 'Date':
+        data.sort(
+        key=lambda x: datetime.strptime(x.get("Date", "1970-01-01"), '%Y-%m-%d'),
+        reverse=(reversed)
+    )
     for row in data:
         category = row.get("Category", "Uncategorized")
         amount = float(row.get("Amount", 0))
         categorized_totals[category] += amount
     categories = list(categorized_totals.keys())
     amounts = [abs(categorized_totals[cat]) for cat in categories]
-    return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts)
+    return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order)
 
 @app.route("/second_page", methods=["GET", "POST"])
 def second_page():
