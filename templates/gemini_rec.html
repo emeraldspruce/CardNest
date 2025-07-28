@@ -52,14 +52,14 @@
     {% set welcome_bonus = '' %}
     {% set features = [] %}
     {% set url = '' %}
-    {% for line in lines[4:] %}
+    {% for line in lines %}
         {% if line.startswith('Rewards:') %}
             {% set rewards = line.split(':', 1)[1].strip() %}
         {% elif line.startswith('Rewards Type:') %}
             {% set rewards_type = line.split(':', 1)[1].strip() %}
         {% elif line.startswith('Welcome Bonus:') %}
             {% set welcome_bonus = line.split(':', 1)[1].strip() %}
-        {% elif line.startswith('  - ') %}
+        {% elif line.startswith('  - ') and not line.strip().startswith('More info:') %}
             {% set _ = features.append(line[4:].strip()) %}
         {% elif line.startswith('More info:') %}
             {% set url = line.split(':', 1)[1].strip() %}
@@ -78,15 +78,18 @@
                 {% if features %}
                     <div><span style="font-weight:600; color:#4f8cff;">Features:</span>
                         <ul style="margin:0.5em 0 0 1.5em;">
-                        {% for feature in features %}
+                        {% for feature in features[:-1] %}
                             <li>{{ feature }}</li>
                         {% endfor %}
                         </ul>
                     </div>
                 {% endif %}
-                {% if url %}
-                    <div><a href="{{ url }}" target="_blank" style="color:#4f8cff; font-weight:600; text-decoration:underline;">More info</a></div>
-                {% endif %}
+                <!-- Grab link from last feature in list (not displayed) -->
+                {% for line in lines %}
+                    {% if 'More info:' in line %}
+                        <div><a href="{{ line.split('More info:', 1)[1].strip() }}" target="_blank" style="color:#4f8cff; font-weight:600; text-decoration:underline;">View Card Details</a></div>
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
     </div>
