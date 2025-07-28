@@ -9,6 +9,7 @@ from geminiCardOutput import get_recommended_card
 
 
 app = Flask(__name__)
+load_dotenv()
 app.secret_key = os.getenv("SECRET_KEY")
 
 def init_app():
