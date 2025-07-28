@@ -114,7 +114,7 @@ class Database:
             cursor.execute('SELECT * FROM users')
             return cursor.fetchall()
 
-    def update_user(self, user_id, username=None, email=None, password=None):
+    def update_user(self, user_id, username=None, email=None, password=None, balance=None):
         """Update user information."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
@@ -124,6 +124,8 @@ class Database:
                 cursor.execute('UPDATE users SET email = ? WHERE id = ?', (email, user_id))
             if password:
                 cursor.execute('UPDATE users SET password = ? WHERE id = ?', (password, user_id))
+            if balance:
+                cursor.execute('UPDATE users SET balance = ? WHERE id = ?', (balance, user_id))
             conn.commit()
 
     # All of the following methods are for managing the users' credit cards.

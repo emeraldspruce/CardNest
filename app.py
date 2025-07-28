@@ -32,37 +32,31 @@ def login():
 def profile():
     return render_template("profile.html")
 
-@app.route("/first_page")
-def first_page():
-    return render_template("first_page.html")
+@app.route("/home")
+def home():
+    return render_template("home.html")
 
-@app.route("/second_page", methods=["GET", "POST"])
-def second_page():
+@app.route("/upload_page", methods=["GET", "POST"])
+def upload_page():
     global db
     if db is None:
         db = Database()
-
-    id = session.get('user_id')
-    if id is not None:
-        db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Cash"))
-        db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Plus"))
-    return render_template("second_page.html")
+    return render_template("upload_page.html")
 
 UPLOAD_FOLDER = 'uploads'  
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-
 @app.route("/upload_statement", methods=["POST"])
 def upload_statement():
     if 'file' not in request.files:
         flash("No file part")
-        return redirect(url_for('second_page'))
+        return redirect(url_for('upload_page'))
 
     file = request.files['file']
     if file.filename == '':
         flash("No selected file")
-        return redirect(url_for('second_page'))
+        return redirect(url_for('upload_page'))
 
     if file and file.filename.endswith('.csv'):
         filename = secure_filename(file.filename) 
@@ -70,10 +64,10 @@ def upload_statement():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(filepath)
         flash("File uploaded successfully!")
-        return redirect(url_for('second_page'))
+        return redirect(url_for('upload_page'))
     else:
         flash("Invalid file type. Please upload a CSV file.")
-        return redirect(url_for('second_page'))
+        return redirect(url_for('upload_page'))
 
 @app.route("/third_page")
 def third_page():
@@ -81,10 +75,14 @@ def third_page():
 
 @app.route("/gemini_rec", methods=["GET", "POST"])
 def gemini_rec():
+    global db
+    if db is None:
+        db = Database()
+
     if request.method == "POST":
         description = request.form.get("description")
         if description:
-            output = get_recommended_card(description)
+            output = get_recommended_card(description, db)
             return render_template("gemini_rec.html", message=output)
     return render_template("gemini_rec.html")
 
