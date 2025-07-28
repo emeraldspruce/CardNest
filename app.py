@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 from geminiCardOutput import get_recommended_card
+import pandas as pd
 
 
 app = Flask(__name__)
@@ -30,12 +31,14 @@ def login():
 def profile():
     return render_template("profile.html", require_auth=True)
 
-@app.route("/first_page")
-def first_page():
-    return render_template("first_page.html", require_auth=True)
+@app.route("/dashboard")
+def dashboard():
+    data = session.get("data", [])
+    return render_template("dashboard.html", require_auth=True, data=data)
 
 @app.route("/second_page", methods=["GET", "POST"])
 def second_page():
+    session.pop("data", None)  # Clear previous data if any
     return render_template("second_page.html", require_auth=True)
 
 UPLOAD_FOLDER = 'uploads'  
@@ -59,8 +62,15 @@ def upload_statement():
         unique_filename = f"{uuid.uuid4().hex}_{filename}"  
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(filepath)
+
+        #parse the CSV file and store data in session
+        try:
+            df = pd.read_csv(filepath)
+            session['data'] = df.to_dict(orient='records')  # Store data as a list of dictionaries
+        except Exception as e:
+            flash(f"Error processing file: {e}")
         flash("File uploaded successfully!")
-        return redirect(url_for('second_page'))
+        return redirect(url_for('dashboard'))
     else:
         flash("Invalid file type. Please upload a CSV file.")
         return redirect(url_for('second_page'))

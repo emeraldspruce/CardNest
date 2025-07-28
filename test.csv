@@ -1,2 +1,6 @@
-Purchase,Category,Date
-Muffins,Grocery,02-23-2005
+Date,Description,Amount,Category
+2025-07-01,Coffee Shop,-3.50,Food & Drink
+2025-07-02,Salary,1500.00,Income
+2025-07-03,Electricity Bill,-75.20,Utilities
+2025-07-04,Groceries,-120.45,Food & Drink
+2025-07-05,Internet Bill,-60.00,Utilities
