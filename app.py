@@ -18,8 +18,10 @@ from collections import defaultdict
 
 app = Flask(__name__)
 load_dotenv()
+firebase_service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
 app.secret_key = os.getenv("SECRET_KEY")
-cred = credentials.Certificate("serviceAccountKey.json")
+cred = credentials.Certificate(json.loads(firebase_service_account_json))
+
 firebase_admin.initialize_app(cred)
 db = None
 
