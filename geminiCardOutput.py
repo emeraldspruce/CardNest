@@ -2,6 +2,7 @@ import json
 import os
 import requests
 import textwrap
+from database import Database
 
 # --- Configuration ---
 # IMPORTANT: Set your Gemini API key as an environment variable named 'GEMINI_API_KEY'
@@ -12,59 +13,15 @@ import textwrap
 API_KEY = os.getenv("GEMINI_API_KEY")
 API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={API_KEY}"
 
-# --- Robust File Path ---
-# Get the absolute path of the directory where the script is located.
-# This makes the script runnable from any location.
-try:
-    SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-except NameError:
-    # __file__ is not defined in some interactive environments (like certain notebooks)
-    SCRIPT_DIR = os.getcwd() 
-# Join the script directory path with the data folder and filename.
-JSON_FILE_PATH = os.path.join(SCRIPT_DIR, 'data', 'credit-cards.json')
-
-
-def load_credit_cards(filepath):
-    """
-    Loads credit card data from a JSON file using a robust path.
-
-    Args:
-        filepath (str): The path to the JSON file.
-
-    Returns:
-        list: A list of dictionaries, where each dictionary is a credit card.
-              Returns None if the file is not found or is invalid.
-    """
-    try:
-        with open(filepath, 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print(f"Error: The file was not found at the expected path: {filepath}")
-        print("Please make sure you have a 'data' folder in the same directory as the script,")
-        print("and that 'credit-card.json' is inside that 'data' folder.")
-        return None
-    except json.JSONDecodeError:
-        print(f"Error: The file '{filepath}' is not a valid JSON file.")
-        return None
-
-def get_user_query():
-    """
-    Prompts the user to describe their ideal credit card.
-
-    Returns:
-        str: The user's description.
-    """
-    print("\nPlease describe the type of credit card you are looking for.")
-    print("For example: 'I want a card with no annual fee and good travel rewards.'")
-    return input("> ")
-
-def find_best_card(card_list, user_query):
+def find_best_card(card_list, user_query, fail_num=0, fail_max=5):
     """
     Uses the Gemini API to find the best card based on a user's query.
 
     Args:
         card_list (list): The list of available credit cards.
         user_query (str): The user's description of their desired card.
+        fail_num (int): The current number of failed attempts.
+        fail_max (int): The maximum number of fails allowed.
 
     Returns:
         dict: The dictionary of the recommended card, or None if an error occurs.
@@ -126,14 +83,26 @@ def find_best_card(card_list, user_query):
 
     except requests.exceptions.RequestException as e:
         print(f"An API error occurred: {e}")
+        fail_num += 1
+        print(f"Number of fails: {fail_num}")
+        if fail_num < fail_max:
+            return find_best_card(card_list, user_query, fail_num)
         return None
     except (KeyError, IndexError):
         print("Error: Could not parse the response from the Gemini API.")
         print("Raw response:", response.text)
+        fail_num += 1
+        print(f"Number of fails: {fail_num}")
+        if fail_num < fail_max:
+            return find_best_card(card_list, user_query, fail_num)
         return None
     except json.JSONDecodeError:
         print("Error: Failed to decode the JSON response from the API.")
         print("Received text:", card_text)
+        fail_num += 1
+        print(f"Number of fails: {fail_num}")
+        if fail_num < fail_max:
+            return find_best_card(card_list, user_query, fail_num)
         return None
 
 
@@ -204,12 +173,36 @@ def format_card(card):
     lines.append("------------------------")
     return "\n".join(lines)
 
+def simplify(cards):
+    """
+    Removes unused data from the cards JSON.
 
-def get_recommended_card(user_query):
+    Args:
+        cards (list): The list of available credit cards.
+
+    Returns:
+        list: The list of availible credit cards simplified
+    """
+    return_cards = []
+    for card in cards:
+        simple_card = {}
+        simple_card["name"] = card["name"]
+        simple_card["issuer"] = card["issuer"]
+        simple_card["currency"] = card["currency"]
+        simple_card["annualFee"] = card["annualFee"]
+        simple_card["universalCashbackPercent"] = card["universalCashbackPercent"]
+        simple_card["url"] = card["url"]
+        simple_card["credits"] = card["credits"]
+        simple_card["offers"] = card["offers"]
+        return_cards.append(simple_card)
+    return return_cards
+
+def get_recommended_card(user_query, db):
     """
     Main function to run the credit card parser program.
     """
-    cards = load_credit_cards(JSON_FILE_PATH)
+    cards_verbose = db.get_cards()
+    cards = simplify(cards_verbose)
     if not cards:
         return "Could not load credit card data."
     card = find_best_card(cards, user_query)
@@ -218,7 +211,8 @@ def get_recommended_card(user_query):
 # Only run main if executed directly
 if __name__ == "__main__":
     print("--- Credit Card Finder powered by Gemini ---")
-    cards = load_credit_cards(JSON_FILE_PATH)
+    db = Database()
+    cards = db.get_cards()
     if not cards:
         exit()
     user_query = input("> ")

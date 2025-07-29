@@ -34,7 +34,7 @@
     //See if user is  already logged in
     auth.onAuthStateChanged((user) => {
         if (user) {
-            window.location.href = "/first_page";
+            window.location.href = "/home";
         }
     });
 
@@ -71,7 +71,15 @@
         try {
             const user = await auth.signInWithEmailAndPassword(email, password);
             console.log("User logged in:", user);
-            window.location.href = "/first_page";
+            const idToken = await user.user.getIdToken();
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ idToken })
+            });
+            window.location.href = "/home";
         } catch (err) {
             authStatus.innerHTML = getFriendlyErrorMessage(err.code);
         }
@@ -86,8 +94,14 @@
             return;
         }
         try {
-            await auth.createUserWithEmailAndPassword(email, password);
-            window.location.href = "/second_page";
+            const user = await auth.createUserWithEmailAndPassword(email, password);
+            const idToken = await user.user.getIdToken();
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idToken })
+            });
+            window.location.href = "/upload_page";
         } catch (err) {
             authStatus.innerHTML = err.message;
         }
