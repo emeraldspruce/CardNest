@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Bank Statements{% endblock %}
+
+{% block scripts %}
+<script>
+    auth.onAuthStateChanged((user) => {
+        if (!user) {
+            window.location.href = "/login";
+        }
+    });
+</script>
+{% endblock %}
+
+{% block body %}
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="text-center mb-4" data-aos="fade-up">
+        <h1 class="fw-bold mb-3" style="font-size: 2rem;">Upload Your Bank Statements</h1>
+        <p class="text-muted" style="max-width: 480px; margin: 0 auto;">
+            We support only CSV files. 
+        </p>
+    </div>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="alert alert-success" role="alert" data-aos="fade-up">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('upload_statement') }}" method="POST" enctype="multipart/form-data"
+          class="d-flex flex-column align-items-center gap-3 w-100"
+          style="max-width: 500px;" data-aos="fade-up">
+
+        <div class="w-100">
+            <input type="file" class="form-control" id="file" name="file" accept=".csv" required>
+        </div>
+
+        <button type="submit" class="btn btn-dark rounded-3 px-4 py-2 shadow-sm d-flex align-items-center gap-2">
+            Upload 
+        </button>
+    </form>
+</div>
+{% endblock %}

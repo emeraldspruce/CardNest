@@ -5,32 +5,57 @@
     <title>{% block title %}NOT IMPLEMENTED YET{% endblock %}</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
-    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}" />
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}" /> -->
     <!--Bootstrap CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" />
-    {% block headers %}
-    <!-- Child templates insert their content here -->
-    {% endblock %}
+
+    <!-- AOS CSS -->
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+        background-color: #f9f9f9;
+        font-family: 'Inter', sans-serif;
+        color: #111;
+        }
+
+        .btn-dark {
+        background-color: #111;
+        border: none;
+        transition: background-color 0.3s ease;
+        }
+
+        .btn-dark:hover {
+        background-color: #000;
+        }
+
+</style>
+
 </head>
 
-<body>
+<body {% if require_auth %}style="visibility:hidden;"{% endif %}>
     <header>
         <!-- Navigation bar or header content can go here -->
         <!-- Example navbar so we can navigate -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
             <div class="container-fluid">
-                <a class="navbar-brand" href="{{ url_for('first_page') }}">APP NAME!!</a>
+                <a class="navbar-brand" href="{{ url_for('home') }}">CardNest</a>
                 <div class="collapse navbar-collapse">
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('first_page') }}">First Page</a>
+                            <a class="nav-link" href="{{ url_for('home') }}">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('second_page') }}">Upload Statement</a>
+                            <a class="nav-link" href="{{ url_for('upload_page') }}">Upload Statement</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('gemini_rec') }}">Gemini Recommedation</a>
+                            <a class="nav-link" href="{{ url_for('gemini_rec') }}">Credit Card Recommendation</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('browse_cards') }}">Browse Cards</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('browse_cards') }}">Browse Cards</a>
@@ -48,7 +73,7 @@
         </nav>
     </header>
 
-    <main class="container mt-4">
+    <main class="container py-4 mt-4 d-flex flex-column align-items-center">
         {% block body %}
         <!-- Child templates insert their content here -->
         {% endblock %}
@@ -101,8 +126,29 @@
 
     </script>
     <!-- Put any global JS scripts under here -->
+    {% if require_auth %}
+    <script>
+  auth.onAuthStateChanged((user) => {
+  console.log("Auth state changed. User:", user);
+  if (!user) {
+    window.location.href = '/login';
+  } else {
+    document.body.style.visibility = 'visible';
+  }
+});
+</script>
+{% endif %}
     {% block scripts %}
+
     {% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script>
+  AOS.init({
+    once: false, // Animation repeats on scroll
+    duration: 600, // Animation duration in milliseconds
+    easing: 'ease-in-out', // Animation easing
+  });
+</script>
 </body>
 
 </html>
