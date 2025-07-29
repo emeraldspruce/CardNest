@@ -9,6 +9,14 @@
             window.location.href = "/login";
         }
     });
+
+    setTimeout(() => {
+        const alert = document.querySelector('.alert.alert-success');
+        if (alert) {
+            alert.style.opacity = '0';
+            alert.style.display = 'none';
+        }
+    }, 100); // Hide alert after 0.1 seconds
 </script>
 {% endblock %}
 

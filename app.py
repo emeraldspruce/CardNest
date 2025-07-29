@@ -1,3 +1,6 @@
+from collections import defaultdict
+
+from networkx import reverse
 from flask import Flask, render_template, abort, request, session, redirect, url_for, flash
 from dotenv import load_dotenv
 from database import Database 
@@ -8,6 +11,9 @@ from firebase_admin import credentials, auth
 import os
 import json
 from geminiCardOutput import get_recommended_card
+import pandas as pd
+from datetime import datetime
+from collections import defaultdict
 
 
 app = Flask(__name__)
@@ -32,15 +38,91 @@ def page_not_found(e):
 @app.route("/")
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    return render_template("login.html")
+    return render_template("login.html", require_auth=False)
+
+# Formatting csv date 
+@app.template_filter("format_date")
+def format_date(value):
+    if isinstance(value, str):
+        #We assume date is in 'YYYY-MM-DD' format
+        try:
+            date = datetime.strptime(value, '%Y-%m-%d')
+            return date.strftime('%B %d, %Y')  # Format as 'Jul, 28, 2025'
+        except Exception:
+            return value
+    return value
+
+# Format csv dollar values
+@app.template_filter("format_currency")
+def format_currency(value):
+    try: 
+        if isinstance(value, (int, float)):
+            return f"${(value):,.2f}" #Already int or float so just format
+        elif isinstance(value, str):
+            return f"${(float(value)):.2f}"  # Convert string to float and format
+    except Exception:
+        return value
+    return value
+
+# Formatting csv date 
+@app.template_filter("format_date")
+def format_date(value):
+    if isinstance(value, str):
+        #We assume date is in 'YYYY-MM-DD' format
+        try:
+            date = datetime.strptime(value, '%Y-%m-%d')
+            return date.strftime('%B %d, %Y')  # Format as 'Jul, 28, 2025'
+        except Exception:
+            return value
+    return value
+
+# Format csv dollar values
+@app.template_filter("format_currency")
+def format_currency(value):
+    try: 
+        if isinstance(value, (int, float)):
+            return f"${(value):,.2f}" #Already int or float so just format
+        elif isinstance(value, str):
+            return f"${(float(value)):.2f}"  # Convert string to float and format
+    except Exception:
+        return value
+    return value
 
 @app.route("/profile")
 def profile():
     return render_template("profile.html", require_auth=True)
 
-@app.route("/home")
-def home():
-    return render_template("home.html", require_auth=True)
+@app.route("/dashboard")
+def dashboard():
+    data = session.get("data", [])
+    categorized_totals = defaultdict(float)
+    net_balance = 0.0
+    
+    #Get sorting params 
+    sort_column = request.args.get("sort_column", "Date") #Default to sorting by Date
+    sort_order = request.args.get("sort_order", "asc") #Default to ascending order
+    reversed = sort_order == "desc"
+    if sort_column == 'Amount':
+        data.sort(key=lambda x: float(x.get("Amount", 0)), reverse=(reversed))
+    elif sort_column == 'Date':
+        data.sort(
+        key=lambda x: datetime.strptime(x.get("Date", "1970-01-01"), '%Y-%m-%d'),
+        reverse=(reversed)
+    )
+    for row in data:
+        category = row.get("Category", "Uncategorized")
+        amount = float(row.get("Amount", 0))
+        categorized_totals[category] += amount
+        net_balance += amount
+    categories = list(categorized_totals.keys())
+    amounts = [abs(categorized_totals[cat]) for cat in categories]
+    # Calculate income and expense totals
+    income_total = sum(amount for cat, amount in categorized_totals.items() if amount > 0)
+    expense_total = sum(abs(amount) for cat, amount in categorized_totals.items() if amount < 0)
+    
+    #Trim net balance to 2 decimal places
+    net_balance = round(net_balance, 2)
+    return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order, net_balance=net_balance, total_income=income_total, total_expenses=expense_total)
 
 @app.route("/browse_cards", methods=["GET", "POST"])
 def browse_cards():
@@ -59,6 +141,12 @@ def upload_page():
     global db
     if db is None:
         db = Database()
+
+    id = session.get('user_id')
+    if id is not None:
+        db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Cash"))
+        db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Plus"))
+    session.pop("data", None)  # Clear previous data if any
     return render_template("upload_page.html", require_auth=True)
 
 UPLOAD_FOLDER = 'uploads'  
@@ -81,8 +169,15 @@ def upload_statement():
         unique_filename = f"{uuid.uuid4().hex}_{filename}"  
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         file.save(filepath)
+
+        #parse the CSV file and store data in session
+        try:
+            df = pd.read_csv(filepath)
+            session['data'] = df.to_dict(orient='records')  # Store data as a list of dictionaries
+        except Exception as e:
+            flash(f"Error processing file: {e}")
         flash("File uploaded successfully!")
-        return redirect(url_for('upload_page'))
+        return redirect(url_for('dashboard'))
     else:
         flash("Invalid file type. Please upload a CSV file.")
         return redirect(url_for('upload_page'))
