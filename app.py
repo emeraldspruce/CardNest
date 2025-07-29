@@ -135,7 +135,7 @@ def upload_page():
         db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Cash"))
         db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Plus"))
     session.pop("data", None)  # Clear previous data if any
-    return render_template("second_page.html", require_auth=True)
+    return render_template("upload_page.html", require_auth=True)
 
 UPLOAD_FOLDER = 'uploads'  
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
