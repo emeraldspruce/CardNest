@@ -18,11 +18,15 @@ from collections import defaultdict
 
 app = Flask(__name__)
 load_dotenv()
-firebase_service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
 app.secret_key = os.getenv("SECRET_KEY")
-cred = credentials.Certificate(json.loads(firebase_service_account_json))
+firebase_service_account_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+if not firebase_service_account_json:
+    raise Exception("FIREBASE_SERVICE_ACCOUNT_JSON not found in env!")
 
-firebase_admin.initialize_app(cred)
+firebase_creds_dict = json.loads(firebase_service_account_json)
+cred = credentials.Certificate(firebase_creds_dict)
+firebase_app = firebase_admin.initialize_app(cred)
+
 db = None
 
 
