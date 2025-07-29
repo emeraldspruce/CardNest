@@ -18,6 +18,8 @@ pip install requests
 pip install python-dotenv
 pip install gunicorn
 pip install firebase-admin
+pip install networkx
+pip install pandas
 
 pip freeze > requirements.txt
 echo "=== Dependancies installed in virtual environment 'venv' ==="
