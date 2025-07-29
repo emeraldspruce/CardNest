@@ -4,110 +4,136 @@
 
 {% block scripts %}
 <script>
-    auth.onAuthStateChanged((user) => {
-        if (!user) {
-            window.location.href = "/";
-        }
-    });
-
+  auth.onAuthStateChanged(user => {
+    if (!user) {
+      window.location.href = '/';
+    }
+  });
 </script>
 {% endblock %}
 
 {% block body %}
 <div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="text-center mb-4" data-aos="fade-up">
-        <h1 class="fw-bold mb-3" style="font-size: 2rem;">Gemini-Powered Credit Card Recommender</h1>
-    </div>
-
-    <form method="post" action="/gemini_rec"
-          class="bg-white p-4 rounded-4 shadow-sm w-100 mb-4"
-          style="max-width: 600px;" data-aos="fade-up">
-        <div class="mb-3">
-            <label for="description" class="form-label fw-semibold">Describe the credit card you want:</label>
-            <textarea id="description" name="description" rows="4" required
-                      class="form-control rounded-3" style="font-size: 1em;"></textarea>
-        </div>
-        <button type="submit" class="btn btn-dark rounded-3 px-4 py-2 shadow-sm">
-            Submit
-        </button>
-    </form>
-
-    {% if message %}
-        {% set lines = message.split('\n') %}
-        {% set name = lines[1].split(':', 1)[1].strip() if lines|length > 1 else '' %}
-        {% set issuer = lines[2].split(':', 1)[1].strip() if lines|length > 2 else '' %}
-        {% set annual_fee = lines[3].split(':', 1)[1].strip() if lines|length > 3 else '' %}
-        {% set rewards = '' %}
-        {% set rewards_type = '' %}
-        {% set welcome_bonus = '' %}
-        {% set features = [] %}
-        {% set url = '' %}
-        {% for line in lines[4:] %}
-            {% if line.startswith('Rewards:') %}
-                {% set rewards = line.split(':', 1)[1].strip() %}
-            {% elif line.startswith('Rewards Type:') %}
-                {% set rewards_type = line.split(':', 1)[1].strip() %}
-            {% elif line.startswith('Welcome Bonus:') %}
-                {% set welcome_bonus = line.split(':', 1)[1].strip() %}
-            {% elif line.startswith('  - ') %}
-                {% set _ = features.append(line[4:].strip()) %}
-            {% elif line.startswith('More info:') %}
-                {% set url = line.split(':', 1)[1].strip() %}
-            {% endif %}
-        {% endfor %}
-
-        <div class="bg-white rounded-4 shadow-sm p-4 mt-5 w-100" style="max-width: 600px;" data-aos="fade-up">
-  <h2 class="fw-bold mb-3 fs-4">Recommended Card</h2>
-  <div class="d-flex flex-column gap-2 fs-6 text-secondary">
-    <div>
-      <span class="fw-semibold text-dark">Name:</span>
-      <span class="text-body">{{ name }}</span>
-    </div>
-    <div>
-      <span class="fw-semibold text-dark">Issuer:</span>
-      <span class="text-body">{{ issuer }}</span>
-    </div>
-    <div>
-      <span class="fw-semibold text-dark">Annual Fee:</span>
-      <span class="text-body">{{ annual_fee }}</span>
-    </div>
-    {% if rewards_type %}
-      <div>
-        <span class="fw-semibold text-dark">Rewards Type:</span>
-        <span class="text-body">{{ rewards_type }}</span>
-      </div>
-    {% endif %}
-    {% if rewards %}
-      <div>
-        <span class="fw-semibold text-dark">Rewards:</span>
-        <span class="text-body">{{ rewards }}</span>
-      </div>
-    {% endif %}
-    {% if welcome_bonus %}
-      <div>
-        <span class="fw-semibold text-dark">Welcome Bonus:</span>
-        <span class="text-body">{{ welcome_bonus }}</span>
-      </div>
-    {% endif %}
-    {% if features %}
-      <div>
-        <span class="fw-semibold text-dark">Features:</span>
-        <ul class="mt-2 mb-0 ps-3">
-          {% for feature in features %}
-            <li class="text-body">{{ feature }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-    {% if url %}
-      <div>
-        <a href="{{ url }}" target="_blank" class="btn btn-outline-primary mt-3 px-3 py-2 rounded-3">
-          More Info 
-        </a>
-      </div>
-    {% endif %}
+  <div class="text-center mb-4" data-aos="fade-up">
+    <h1 class="fw-bold mb-3" style="font-size: 2rem;">Gemini-Powered Credit Card Recommender</h1>
   </div>
-</div>
-    {% endif %}
+
+  <form method="post" action="/gemini_rec"
+        class="bg-white p-4 rounded-4 shadow-sm w-100 mb-4"
+        style="max-width: 600px;" data-aos="fade-up">
+    <div class="mb-3">
+      <label for="description" class="form-label fw-semibold">Describe the credit card you want:</label>
+      <textarea id="description" name="description" rows="4" required
+                class="form-control rounded-3" style="font-size: 1em;"></textarea>
+    </div>
+    <button type="submit" class="btn btn-dark rounded-3 px-4 py-2 shadow-sm">
+      Submit
+    </button>
+  </form>
+
+  {% if message %}
+    {% set lines = message.split('\n') %}
+
+    {# 1) Map raw issuer code to pretty name #}
+    {% set raw_issuer = lines[2].split(':',1)[1].strip() if lines|length > 2 else '' %}
+    {% set issuer_map = {
+      'CAPITAL_ONE':'Capital One',
+      'DISCOVER':'Discover',
+      'AMEX':'American Express',
+      'AMERICAN_EXPRESS':'American Express',
+      'CHASE':'Chase',
+      'CITI':'Citi',
+      'CITIBANK':'Citi',
+      'BOA':'Bank of America',
+      'BANK_OF_AMERICA':'Bank of America',
+      'WELLS_FARGO':'Wells Fargo',
+      'US_BANK':'U.S. Bank'
+    } %}
+    {% set issuer = issuer_map[raw_issuer]
+       if raw_issuer in issuer_map
+       else raw_issuer.title().replace('_',' ') %}
+
+    {# 2) Extract remaining fields #}
+    {% set name          = lines[1].split(':',1)[1].strip() if lines|length > 1 else '' %}
+    {% set annual_fee    = lines[3].split(':',1)[1].strip() if lines|length > 3 else '' %}
+    {% set rewards       = '' %}
+    {% set rewards_type  = '' %}
+    {% set welcome_bonus = '' %}
+    {% set features      = [] %}
+
+    {% for line in lines %}
+      {% if line.startswith('Rewards:') %}
+        {% set rewards = line.split(':',1)[1].strip() %}
+      {% elif line.startswith('Rewards Type:') %}
+        {% set rewards_type = line.split(':',1)[1].strip() %}
+      {% elif line.startswith('Welcome Bonus:') %}
+        {% set welcome_bonus = line.split(':',1)[1].strip() %}
+      {% elif line.startswith('  - ') %}
+        {% set _ = features.append(line[4:].strip()) %}
+      {% endif %}
+    {% endfor %}
+
+    <div class="bg-white rounded-4 shadow-sm p-4 mt-5 w-100"
+         style="max-width: 600px;" data-aos="fade-up">
+      <h2 class="fw-bold mb-3 fs-4">Recommended Card</h2>
+      <div class="d-flex flex-column gap-2 fs-6 text-secondary">
+        <div>
+          <span class="fw-semibold text-dark">Name:</span>
+          <span class="text-body">{{ name }}</span>
+        </div>
+        <div>
+          <span class="fw-semibold text-dark">Issuer:</span>
+          <span class="text-body">{{ issuer }}</span>
+        </div>
+        <div>
+          <span class="fw-semibold text-dark">Annual Fee:</span>
+          <span class="text-body">{{ annual_fee }}</span>
+        </div>
+
+        {% if rewards_type %}
+          <div>
+            <span class="fw-semibold text-dark">Rewards Type:</span>
+            <span class="text-body">{{ rewards_type }}</span>
+          </div>
+        {% endif %}
+        {% if rewards %}
+          <div>
+            <span class="fw-semibold text-dark">Rewards:</span>
+            <span class="text-body">{{ rewards }}</span>
+          </div>
+        {% endif %}
+        {% if welcome_bonus %}
+          <div>
+            <span class="fw-semibold text-dark">Welcome Bonus:</span>
+            <span class="text-body">{{ welcome_bonus }}</span>
+          </div>
+        {% endif %}
+
+        {% if features %}
+          <div>
+            <span class="fw-semibold text-dark">Features:</span>
+            <ul class="mt-2 mb-0 ps-3">
+              {% for feature in features %}
+                <li class="text-body">{{ feature }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        {# Inline clickable link from message lines #}
+        {% for line in lines %}
+          {% if 'More info:' in line %}
+            <div>
+              <a href="{{ line.split('More info:',1)[1].strip() }}"
+                 target="_blank"
+                 style="color:#4f8cff; font-weight:600; text-decoration:underline;">
+                View Card Details
+              </a>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
 </div>
 {% endblock %}
