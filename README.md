@@ -1,6 +1,6 @@
 # 💳 CardNest
 
-[![Live Demo](https://img.shields.io/badge/Demo-Live-green)](https://card-nest.up.railway.app/)
+[![Live Demo](https://img.shields.io/badge/Demo-Live-green)](https://cardnest.onrender.com/)
 
 **CardNest** is a web application designed to help you take control of your finances by centralizing all of your credit cards in one place. Track your expenses, monitor your total balance, and discover the perks your cards offer—all from a single dashboard.
 
@@ -21,7 +21,7 @@
 
 ## 🖥️ Live Demo
 
-🌐 [https://card-nest.up.railway.app/](https://card-nest.up.railway.app/)
+🌐 [https://cardnest.onrender.com/](https://cardnest.onrender.com/)
 
 ---
 
