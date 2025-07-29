@@ -44,11 +44,30 @@
     const authStatus = document.querySelector(".auth-status");
     const loginForm = document.getElementById("login-form");
 
+    // Firebase Err codes to user-friendly messages
+    function getFriendlyErrorMessage(code) {
+        switch (code) {
+            case 'auth/invalid-email':
+                return "Invalid email format.";
+            case 'auth/user-not-found':
+                return "No user found with this email.";
+            case 'auth/wrong-password':
+                return "Incorrect password.";
+            case 'auth/email-already-in-use':
+                return "Email is already in use.";
+            default:
+                return "An error occurred. Please try again.";
+        }
+    }
     // Login
     loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const email = emailInput.value.trim();
         const password = passwordInput.value.trim();
+        if (!email || !password) {
+            authStatus.innerHTML = "Please enter both email and password.";
+            return;
+        }
         try {
             const user = await auth.signInWithEmailAndPassword(email, password);
             console.log("User logged in:", user);
@@ -62,7 +81,7 @@
             });
             window.location.href = "/home";
         } catch (err) {
-            authStatus.innerHTML = err.message;
+            authStatus.innerHTML = getFriendlyErrorMessage(err.code);
         }
     });
 
