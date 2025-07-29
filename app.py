@@ -10,7 +10,9 @@ from geminiCardOutput import get_recommended_card
 
 
 app = Flask(__name__)
+load_dotenv()
 db = None
+
 app.secret_key = os.getenv("SECRET_KEY")
 
 def init_app():
@@ -26,15 +28,15 @@ def page_not_found(e):
 @app.route("/")
 @app.route("/login")
 def login():
-    return render_template("login.html")
+    return render_template("login.html", require_auth=False)
 
 @app.route("/profile")
 def profile():
-    return render_template("profile.html")
+    return render_template("profile.html", require_auth=True)
 
 @app.route("/first_page")
 def first_page():
-    return render_template("first_page.html")
+    return render_template("first_page.html", require_auth=True)
 
 @app.route("/second_page", methods=["GET", "POST"])
 def second_page():
@@ -46,7 +48,7 @@ def second_page():
     if id is not None:
         db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Cash"))
         db.add_user_card(user_id=id, card_id=db.get_card_id_by_name("Blue Business Plus"))
-    return render_template("second_page.html")
+    return render_template("second_page.html", require_auth=True)
 
 UPLOAD_FOLDER = 'uploads'  
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
@@ -77,7 +79,7 @@ def upload_statement():
 
 @app.route("/third_page")
 def third_page():
-    return render_template("third_page.html")
+    return render_template("third_page.html", require_auth=True)
 
 @app.route("/gemini_rec", methods=["GET", "POST"])
 def gemini_rec():
@@ -85,8 +87,8 @@ def gemini_rec():
         description = request.form.get("description")
         if description:
             output = get_recommended_card(description)
-            return render_template("gemini_rec.html", message=output)
-    return render_template("gemini_rec.html")
+            return render_template("gemini_rec.html", message=output, require_auth=True)
+    return render_template("gemini_rec.html", require_auth=True)
 
 
 if __name__ == "__main__":
