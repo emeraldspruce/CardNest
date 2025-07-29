@@ -191,7 +191,7 @@ class Database:
             cursor.execute('SELECT * FROM users')
             users = cursor.fetchall()
             for user in users:
-                print(f"ID: {user["id"]}\n    Email: {user["email"]}\n    Balance: {user["balance"]}")
+                print(f"ID: {user['id']}\n    Email: {user['email']}\n    Balance: {user['balance']}")
 
     def print_user_cards(self, user_id):
         """Print all credit cards associated with a user."""
