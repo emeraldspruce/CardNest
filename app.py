@@ -42,13 +42,17 @@ def profile():
 def home():
     return render_template("home.html", require_auth=True)
 
-@app.route("/browse_cards")
+@app.route("/browse_cards", methods=["GET", "POST"])
 def browse_cards():
     global db
     if db is None:
         db = Database()
     cards = db.get_cards()
-    return render_template("browse_cards.html", cards=cards)
+
+    if request.method == "POST":
+        card_id = request.form.get('cardId')
+        db.add_user_card(session["user"]["id"], card_id)
+    return render_template("browse_cards.html", cards=cards, require_auth=True)
 
 @app.route("/upload_page", methods=["GET", "POST"])
 def upload_page():
