@@ -33,17 +33,14 @@ class Database:
         conn.row_factory = sqlite3.Row
         return conn
 
-
     def init_db(self):
         """Initialize the database and create the tables if they doesn't exist."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT NOT NULL,
+                    id TEXT PRIMARY KEY UNIQUE,
                     email TEXT NOT NULL UNIQUE,
-                    password TEXT NOT NULL,
                     balance REAL DEFAULT 0
                 )
             ''')
@@ -85,22 +82,22 @@ class Database:
         return self.card_data
 
     # All of the following methods are for managing the user table.
-    def add_user(self, username, email, password):
+    def add_user(self, id, email, balance=0):
         """Add a new user to the database."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute('''
-                INSERT OR IGNORE INTO users (username, email, password)
+                INSERT OR IGNORE INTO users (id, email, balance)
                 VALUES (?, ?, ?)
-            ''', (username, email, password))
+            ''', (id, email, balance))
             conn.commit()
 
-    def get_user(self, username=None, email=None):
-        """Retrieve a user by username or email."""
+    def get_user(self, id=None, email=None):
+        """Retrieve a user by id or email."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            if username:
-                cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+            if id:
+                cursor.execute('SELECT * FROM users WHERE id = ?', (id,))
             elif email:
                 cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
             else:
@@ -114,16 +111,12 @@ class Database:
             cursor.execute('SELECT * FROM users')
             return cursor.fetchall()
 
-    def update_user(self, user_id, username=None, email=None, password=None, balance=None):
+    def update_user(self, user_id, email=None, balance=None):
         """Update user information."""
         with self.get_connection() as conn:
             cursor = conn.cursor()
-            if username:
-                cursor.execute('UPDATE users SET username = ? WHERE id = ?', (username, user_id))
             if email:
                 cursor.execute('UPDATE users SET email = ? WHERE id = ?', (email, user_id))
-            if password:
-                cursor.execute('UPDATE users SET password = ? WHERE id = ?', (password, user_id))
             if balance:
                 cursor.execute('UPDATE users SET balance = ? WHERE id = ?', (balance, user_id))
             conn.commit()
@@ -198,7 +191,7 @@ class Database:
             cursor.execute('SELECT * FROM users')
             users = cursor.fetchall()
             for user in users:
-                print(user)
+                print(f"ID: {user["id"]}\n    Email: {user["email"]}\n    Balance: {user["balance"]}")
 
     def print_user_cards(self, user_id):
         """Print all credit cards associated with a user."""

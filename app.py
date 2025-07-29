@@ -6,18 +6,20 @@ import uuid
 import firebase_admin
 from firebase_admin import credentials, auth
 import os
+import json
 from geminiCardOutput import get_recommended_card
 
 
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY")
-cred = credentials.Certificate("path/to/your/firebase-service-account.json")
+cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
 db = None
 
 
 def init_app():
     '''Runs once at the start to initialize the app with any necessary configurations.'''
+    global db
     db = Database()
 init_app()
 
@@ -27,27 +29,43 @@ def page_not_found(e):
     return render_template("404.html"), 404
 
 @app.route("/")
-@app.route("/login", methods=["POST"])
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    data = request.get_json()
-    id_token = data.get("idToken")
-    try:
-        # Verify the ID token
-        decoded_token = auth.verify_id_token(id_token)
-        uid = decoded_token["uid"]
-        email = decoded_token.get("email")
+    global db
+    if db is None:
+        db = Database()
+    if request.method == "POST":
+        data = request.get_json()
+        id_token = data.get("idToken")
+        try:
+            # Verify the ID token
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token["uid"]
+            email = decoded_token.get("email")
 
-        # Optional: store in session
-        session["user"] = {
-            "uid": uid,
-            "email": email,
-        }
-    except Exception as e:
-        print(f"Login failed: {e}")
+            # Optional: store in session
+            session["user"] = {
+                "id": uid,
+                "email": email,
+            }
+            db.add_user(uid, email)
+            print("User added!")
+        except Exception as e:
+            print(f"Login failed: {e}")
     return render_template("login.html")
 
 @app.route("/profile")
 def profile():
+    ############################################ TESTING #########################################
+    global db
+    print("---------- ALL USERS ----------")
+    db.print_users()
+    print("-------- CURRENT USERS --------")
+    user = db.get_user(session["user"]["id"])
+    if user is not None:
+        print(f"User ID: {user["id"]}")
+        print(f"User email: {user["email"]}")
+    ############################################ TESTING #########################################
     return render_template("profile.html")
 
 @app.route("/home")
