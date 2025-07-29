@@ -83,6 +83,47 @@
         {% set _ = features.append(line[4:].strip()) %}
       {% endif %}
     {% endfor %}
+  {% if message %}
+    {% set lines = message.split('\n') %}
+
+    {# 1) Map raw issuer code to pretty name #}
+    {% set raw_issuer = lines[2].split(':',1)[1].strip() if lines|length > 2 else '' %}
+    {% set issuer_map = {
+      'CAPITAL_ONE':'Capital One',
+      'DISCOVER':'Discover',
+      'AMEX':'American Express',
+      'AMERICAN_EXPRESS':'American Express',
+      'CHASE':'Chase',
+      'CITI':'Citi',
+      'CITIBANK':'Citi',
+      'BOA':'Bank of America',
+      'BANK_OF_AMERICA':'Bank of America',
+      'WELLS_FARGO':'Wells Fargo',
+      'US_BANK':'U.S. Bank'
+    } %}
+    {% set issuer = issuer_map[raw_issuer]
+       if raw_issuer in issuer_map
+       else raw_issuer.title().replace('_',' ') %}
+
+    {# 2) Extract remaining fields #}
+    {% set name          = lines[1].split(':',1)[1].strip() if lines|length > 1 else '' %}
+    {% set annual_fee    = lines[3].split(':',1)[1].strip() if lines|length > 3 else '' %}
+    {% set rewards       = '' %}
+    {% set rewards_type  = '' %}
+    {% set welcome_bonus = '' %}
+    {% set features      = [] %}
+
+    {% for line in lines %}
+      {% if line.startswith('Rewards:') %}
+        {% set rewards = line.split(':',1)[1].strip() %}
+      {% elif line.startswith('Rewards Type:') %}
+        {% set rewards_type = line.split(':',1)[1].strip() %}
+      {% elif line.startswith('Welcome Bonus:') %}
+        {% set welcome_bonus = line.split(':',1)[1].strip() %}
+      {% elif line.startswith('  - ') %}
+        {% set _ = features.append(line[4:].strip()) %}
+      {% endif %}
+    {% endfor %}
 
     <div class="bg-white rounded-4 shadow-sm p-4 mt-5 w-100"
          style="max-width:600px;" data-aos="fade-up">

@@ -17,6 +17,7 @@ pip install flask
 pip install requests
 pip install python-dotenv
 pip install gunicorn
+pip install firebase-admin
 
 pip freeze > requirements.txt
 echo "=== Dependancies installed in virtual environment 'venv' ==="

@@ -6,9 +6,10 @@ from dotenv import load_dotenv
 from database import Database 
 from werkzeug.utils import secure_filename 
 import uuid
+import firebase_admin
+from firebase_admin import credentials, auth
 import os
-import subprocess
-import sys
+import json
 from geminiCardOutput import get_recommended_card
 import pandas as pd
 from datetime import datetime
@@ -17,23 +18,51 @@ from collections import defaultdict
 
 app = Flask(__name__)
 load_dotenv()
-db = None
 app.secret_key = os.getenv("SECRET_KEY")
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+db = None
+
 
 def init_app():
     '''Runs once at the start to initialize the app with any necessary configurations.'''
+    global db
     db = Database()
-
 init_app()
+
 @app.errorhandler(404)
 def page_not_found(e):
     '''Handles 404 errors by rendering a custom 404 page.'''
     return render_template("404.html"), 404
 
 @app.route("/")
-@app.route("/login")
+@app.route("/login", methods=["GET", "POST"])
 def login():
     return render_template("login.html", require_auth=False)
+
+# Formatting csv date 
+@app.template_filter("format_date")
+def format_date(value):
+    if isinstance(value, str):
+        #We assume date is in 'YYYY-MM-DD' format
+        try:
+            date = datetime.strptime(value, '%Y-%m-%d')
+            return date.strftime('%B %d, %Y')  # Format as 'Jul, 28, 2025'
+        except Exception:
+            return value
+    return value
+
+# Format csv dollar values
+@app.template_filter("format_currency")
+def format_currency(value):
+    try: 
+        if isinstance(value, (int, float)):
+            return f"${(value):,.2f}" #Already int or float so just format
+        elif isinstance(value, str):
+            return f"${(float(value)):.2f}"  # Convert string to float and format
+    except Exception:
+        return value
+    return value
 
 # Formatting csv date 
 @app.template_filter("format_date")
@@ -95,8 +124,8 @@ def dashboard():
     net_balance = round(net_balance, 2)
     return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order, net_balance=net_balance, total_income=income_total, total_expenses=expense_total)
 
-@app.route("/second_page", methods=["GET", "POST"])
-def second_page():
+@app.route("/upload_page", methods=["GET", "POST"])
+def upload_page():
     global db
     if db is None:
         db = Database()
@@ -112,17 +141,16 @@ UPLOAD_FOLDER = 'uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-
 @app.route("/upload_statement", methods=["POST"])
 def upload_statement():
     if 'file' not in request.files:
         flash("No file part")
-        return redirect(url_for('second_page'))
+        return redirect(url_for('upload_page'))
 
     file = request.files['file']
     if file.filename == '':
         flash("No selected file")
-        return redirect(url_for('second_page'))
+        return redirect(url_for('upload_page'))
 
     if file and file.filename.endswith('.csv'):
         filename = secure_filename(file.filename) 
@@ -140,7 +168,7 @@ def upload_statement():
         return redirect(url_for('dashboard'))
     else:
         flash("Invalid file type. Please upload a CSV file.")
-        return redirect(url_for('second_page'))
+        return redirect(url_for('upload_page'))
 
 @app.route("/third_page")
 def third_page():
@@ -148,10 +176,14 @@ def third_page():
 
 @app.route("/gemini_rec", methods=["GET", "POST"])
 def gemini_rec():
+    global db
+    if db is None:
+        db = Database()
+
     if request.method == "POST":
         description = request.form.get("description")
         if description:
-            output = get_recommended_card(description)
+            output = get_recommended_card(description, db)
             return render_template("gemini_rec.html", message=output, require_auth=True)
     return render_template("gemini_rec.html", require_auth=True)
 
