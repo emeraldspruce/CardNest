@@ -46,3 +46,5 @@ typing_extensions==4.14.1
 urllib3==2.5.0
 Werkzeug==3.1.3
 zipp==3.23.0
+pandas==2.1.3
+

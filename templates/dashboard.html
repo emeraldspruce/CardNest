@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+{% block scripts %}
+ <!-- Chart.js CDN-->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        auth.onAuthStateChanged((user) => {
+            if (!user) {
+                window.location.href = "/login";
+            }
+        });
+        //Donut chart initialization
+        //Linter will complain since we are using jinja variables in JS (safe to ignore)
+        const cts = {{ categories | tojson }};
+        const amts = {{ amounts | tojson }};
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const spendingWheel = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: cts,
+                datasets: [{
+                    label: 'Amounts',
+                    data: amts,
+                    backgroundColor: [
+                    '#EFE4D2', // creamy beige
+                    '#D9CAB3', // lighter beige
+                    '#3B5A82', // medium steel blue
+                    '#131D4F', // deep navy blue
+                    '#954C2E', // warm brownish-orange
+                    '#7E4F2B', // muted burnt orange
+                    '#555555', // medium charcoal
+                    '#7f8c8d', // slate gray
+                    '#2e2e2e', // dark charcoal
+
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#f0f0f0',
+                    cutout: '65%',
+                    hoverOffset: 4,
+                }]
+            },
+           
+            options: {
+                cutout: '65%',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        align: 'center',
+                        labels: {
+                            color: '#333',
+                            font: {size: 14},
+                            padding: 16,
+                        },
+                    },
+                    title: {
+                        display: true,
+                        text: 'Distribution'
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                },
+            }
+        });
+
+        function sortTable(order, column){
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort_column', column);
+            url.searchParams.set('sort_order', order);
+            window.location.href = url.toString();
+        }
+    </script>
+{% endblock %}
+
+
+
+{% block body %}
+<div class="container py-4" >
+    <h2>Your Uploaded Data</h2>
+
+    {% if data %}
+
+        <div class="container" style="margin-top: 2rem; max-width: 500px;">
+            <div class="net-balance mb-3 align-items-center justify-content-center d-flex">
+                <span class="{{ 'text-success' if net_balance >= 0 else 'text-danger' }} fs-4">
+                <strong>Net Balance: </strong>{{ net_balance | format_currency }}
+                </span>
+            </div>
+            <canvas id="myChart" width="600" height="600"></canvas>
+        </div>
+        <div class="container">
+            <h3 >At a Glance</h3>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-white bg-success mb-3 rounded-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Income</h5>
+                            <p class="card-text fs-5">${{ total_income  }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-danger mb-3 rounded-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Total Expenses</h5>
+                            <p class="card-text fs-5">${{ total_expenses  }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-white bg-primary mb-3 rounded-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Net Balance</h5>
+                            <p class="card-text fs-5">${{ net_balance  }}</p>
+                        </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                    <div class="card text-white bg-info mb-3 rounded-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Transactions</h5>
+                            <p class="card-text fs-5">{{ data|length }}</p>
+                        </div>
+                    </div>
+            </div>
+        </div>
+        
+
+    </div>
+    <div class="container">
+    <h3 class="mb-3">Data Overview</h3>
+    <div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead>
+            <tr>
+                {% for col in data[0].keys() %}
+                <th>
+                    <div class="d-flex align-items-center justify-content-start">
+                    <span>{{ col }}</span>
+                    {% if col == 'Amount' or col =='Date' %}
+                        <select class="ms-2 form-select form-select-sm w-auto" style="width:90px;" onchange="sortTable(this.value, '{{ col }}')">
+                            <option value="asc" {% if sort_column == col and sort_order == 'asc' %}selected{% endif %}>Ascending</option>
+                            <option value="desc" {% if sort_column == col and sort_order == 'desc' %}selected{% endif %}>Descending</option>
+                        </select>
+                    {% endif %}
+                    </div>
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+                <tr>
+                    {% for key,value in row.items() %}
+                    {% if key == 'Amount' %}
+                        <td class="{{'text-success' if value >= 0 else 'text-danger'}}">
+                        {{ value | format_currency }}</td>
+                    {% elif key == 'Date' %}
+                        <td>{{ value | format_date }}</td>
+                    {% else %}
+                        <td>{{ value }}</td>
+                    {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    </div>
+    {% else %}
+        <p>No data to display. Upload a CSV first.</p>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

@@ -34,7 +34,7 @@
     //See if user is  already logged in
     auth.onAuthStateChanged((user) => {
         if (user) {
-            window.location.href = "/home";
+            window.location.href = "/dashboard"; // Redirect to dashboard if already logged in
         }
     });
 

@@ -5,30 +5,41 @@
 {% block scripts %}
 <script>
   auth.onAuthStateChanged(user => {
-    if (!user) {
-      window.location.href = '/';
-    }
+    if (!user) window.location.href = '/';
+  });
+  const form = document.querySelector('form');
+  const loading = document.getElementById('loading');
+  form.addEventListener('submit', () => {
+    loading.classList.remove('d-none');
   });
 </script>
 {% endblock %}
 
 {% block body %}
-<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height: 80vh;">
+<div class="container d-flex flex-column justify-content-center align-items-center" style="min-height:80vh;">
   <div class="text-center mb-4" data-aos="fade-up">
-    <h1 class="fw-bold mb-3" style="font-size: 2rem;">Gemini-Powered Credit Card Recommender</h1>
+    <h1 class="fw-bold mb-3" style="font-size:2rem;">Gemini-Powered Credit Card Recommender</h1>
   </div>
 
   <form method="post" action="/gemini_rec"
         class="bg-white p-4 rounded-4 shadow-sm w-100 mb-4"
-        style="max-width: 600px;" data-aos="fade-up">
+        style="max-width:600px;" data-aos="fade-up">
     <div class="mb-3">
-      <label for="description" class="form-label fw-semibold">Describe the credit card you want:</label>
+      <label for="description" class="form-label fw-semibold">
+        Describe your ideal credit card:
+      </label>
       <textarea id="description" name="description" rows="4" required
-                class="form-control rounded-3" style="font-size: 1em;"></textarea>
+                class="form-control rounded-3" style="font-size:1em;"></textarea>
     </div>
     <button type="submit" class="btn btn-dark rounded-3 px-4 py-2 shadow-sm">
       Submit
     </button>
+    <div id="loading" class="d-none mt-3 text-center">
+      <div class="spinner-border text-dark" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      <p class="mt-2">Generating recommendation...</p>
+    </div>
   </form>
 
   {% if message %}
@@ -74,7 +85,7 @@
     {% endfor %}
 
     <div class="bg-white rounded-4 shadow-sm p-4 mt-5 w-100"
-         style="max-width: 600px;" data-aos="fade-up">
+         style="max-width:600px;" data-aos="fade-up">
       <h2 class="fw-bold mb-3 fs-4">Recommended Card</h2>
       <div class="d-flex flex-column gap-2 fs-6 text-secondary">
         <div>
@@ -89,7 +100,6 @@
           <span class="fw-semibold text-dark">Annual Fee:</span>
           <span class="text-body">{{ annual_fee }}</span>
         </div>
-
         {% if rewards_type %}
           <div>
             <span class="fw-semibold text-dark">Rewards Type:</span>
@@ -108,7 +118,6 @@
             <span class="text-body">{{ welcome_bonus }}</span>
           </div>
         {% endif %}
-
         {% if features %}
           <div>
             <span class="fw-semibold text-dark">Features:</span>
@@ -119,14 +128,15 @@
             </ul>
           </div>
         {% endif %}
-
-        {# Inline clickable link from message lines #}
+        {# 3) Inline clickable link from message lines #}
         {% for line in lines %}
           {% if 'More info:' in line %}
             <div>
-              <a href="{{ line.split('More info:',1)[1].strip() }}"
-                 target="_blank"
-                 style="color:#4f8cff; font-weight:600; text-decoration:underline;">
+              <a
+                href="{{ line.split('More info:',1)[1].strip() }}"
+                target="_blank"
+                style="color:#4f8cff; font-weight:600; text-decoration:underline;"
+              >
                 View Card Details
               </a>
             </div>
