@@ -9,7 +9,11 @@
             window.location.href = "/";
         }
     });
-
+    const form = document.querySelector('form');
+    const loading = document.getElementById('loading');
+    form.addEventListener('submit', (e) => {
+        loading.classList.remove('d-none');
+    });
 </script>
 {% endblock %}
 
@@ -23,13 +27,19 @@
           class="bg-white p-4 rounded-4 shadow-sm w-100 mb-4"
           style="max-width: 600px;" data-aos="fade-up">
         <div class="mb-3">
-            <label for="description" class="form-label fw-semibold">Describe the credit card you want:</label>
+            <label for="description" class="form-label fw-semibold">Describe your ideal credit card:</label>
             <textarea id="description" name="description" rows="4" required
                       class="form-control rounded-3" style="font-size: 1em;"></textarea>
         </div>
         <button type="submit" class="btn btn-dark rounded-3 px-4 py-2 shadow-sm">
             Submit
         </button>
+        <div id="loading" class="d-none mt-3 text-center">
+            <div class="spinner-border text-dark" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Generating recommendation...</p>
+        </div>
     </form>
 
     {% if message %}
