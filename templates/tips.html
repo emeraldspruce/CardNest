@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block title %}Smart Credit Card Tips{% endblock %}
+
+{% block body %}
+<style>
+    /* Custom styles for the tips page */
+    .tip-card {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        border: 1px solid #eee;
+    }
+    .tip-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1) !important;
+    }
+</style>
+
+<div class="container">
+
+    <div class="text-center my-5" data-aos="fade-up">
+        <h1 class="fw-bold mb-3">Master Your Credit Cards</h1>
+        <p class="lead text-secondary">
+            Unlock the full potential of your credit cards. Learn to build credit, maximize rewards, and manage your finances wisely.
+        </p>
+    </div>
+
+    <div class="row align-items-center mb-5 bg-white p-4 rounded-4 shadow-sm tip-card" data-aos="fade-right">
+        <div class="col-md-5">
+            <img src="https://images.unsplash.com/photo-1553729459-efe14ef6055d?auto=format&fit=crop&w=1050&q=80" class="img-fluid rounded-3" alt="Piggy bank with coins representing savings">
+        </div>
+        <div class="col-md-7">
+            <h3 class="fw-bold mt-3 mt-md-0">1. Pay in Full & On Time, Every Time 🗓️</h3>
+            <p class="text-secondary">
+                This is the golden rule of credit cards. Paying your statement balance in full by the due date helps you <strong>avoid interest charges</strong> and late fees. Consistent, on-time payments are the most significant factor in building a strong credit score.
+            </p>
+        </div>
+    </div>
+
+    <hr class="my-5">
+
+    <div class="row align-items-center mb-5 bg-white p-4 rounded-4 shadow-sm tip-card" data-aos="fade-left">
+        <div class="col-md-7 order-md-1">
+            <h3 class="fw-bold">2. Keep Your Credit Utilization Low 📊</h3>
+            <p class="text-secondary">
+                Your credit utilization ratio is the amount of credit you're using compared to your total credit limit. A lower ratio is better for your credit score. Experts recommend keeping your utilization <strong>below 30%</strong> across all your cards.
+            </p>
+        </div>
+        <div class="col-md-5 order-md-2">
+            <img src="https://images.unsplash.com/photo-1591696205602-2f950c417cb9?auto=format&fit=crop&w=1050&q=80" class="img-fluid rounded-3" alt="A person reviewing financial charts on a computer screen">
+        </div>
+    </div>
+
+    <hr class="my-5">
+
+    <div class="row align-items-center mb-5 bg-white p-4 rounded-4 shadow-sm tip-card" data-aos="fade-right">
+        <div class="col-md-5">
+            <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?auto=format&fit=crop&w=1050&q=80" class="img-fluid rounded-3" alt="A hand receiving a small gift box, symbolizing redeeming rewards points.">
+        </div>
+        <div class="col-md-7">
+            <h3 class="fw-bold mt-3 mt-md-0">3. Maximize Your Rewards ✨</h3>
+            <p class="text-secondary">
+                Choose cards that match your spending habits. If you travel frequently, a travel rewards card is ideal. If you spend a lot on groceries, find a card with high cashback rates for that category. Don't forget to <strong>redeem your rewards</strong> regularly.
+            </p>
+        </div>
+    </div>
+
+    <hr class="my-5">
+
+    <div class="row align-items-center mb-5 bg-white p-4 rounded-4 shadow-sm tip-card" data-aos="fade-left">
+        <div class="col-md-7 order-md-1">
+            <h3 class="fw-bold">4. Review Your Statements Regularly 🧐</h3>
+            <p class="text-secondary">
+                Check your credit card statements each month for any <strong>errors or fraudulent charges</strong>. Catching these early can save you time and money. Reviewing your statements also helps you track your spending and stay on budget.
+            </p>
+        </div>
+        <div class="col-md-5 order-md-2">
+            <img src="https://images.unsplash.com/photo-1554224155-1696413565d3?auto=format&fit=crop&w=1050&q=80" class="img-fluid rounded-3" alt="A person using a calculator and reviewing financial papers">
+        </div>
+    </div>
+</div>
+{% endblock %}
