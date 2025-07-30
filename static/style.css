@@ -49,3 +49,44 @@
   border-radius: 4px;
   cursor: pointer;
 }
+/* --- Analysis Formatting --- */
+/* Styles for each major section (Spending, Recommendations, etc.) */
+.analysis-section {
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid #DEE2E6; /* Bootstrap's default border color */
+}
+.analysis-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+/* Heading for each section */
+.analysis-section h5 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  color: #343A40;
+}
+/* Paragraph text */
+.analysis-section p {
+  line-height: 1.6;
+  color: #495057;
+}
+/* Custom list for card recommendations */
+.recommendation-list {
+  list-style-type: none;
+  padding-left: 0;
+}
+.recommendation-list li {
+  background-color: #F8F9FA;
+  border-left: 4px solid #007BFF;
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.75rem;
+  border-radius: 0.25rem;
+}
+.recommendation-list li strong {
+  display: block;
+  color: #212529;
+  margin-bottom: 0.25rem;
+}
