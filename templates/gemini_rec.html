@@ -45,24 +45,8 @@
   {% if message %}
     {% set lines = message.split('\n') %}
 
-    {# 1) Map raw issuer code to pretty name #}
-    {% set raw_issuer = lines[2].split(':',1)[1].strip() if lines|length > 2 else '' %}
-    {% set issuer_map = {
-      'CAPITAL_ONE':'Capital One',
-      'DISCOVER':'Discover',
-      'AMEX':'American Express',
-      'AMERICAN_EXPRESS':'American Express',
-      'CHASE':'Chase',
-      'CITI':'Citi',
-      'CITIBANK':'Citi',
-      'BOA':'Bank of America',
-      'BANK_OF_AMERICA':'Bank of America',
-      'WELLS_FARGO':'Wells Fargo',
-      'US_BANK':'U.S. Bank'
-    } %}
-    {% set issuer = issuer_map[raw_issuer]
-       if raw_issuer in issuer_map
-       else raw_issuer.title().replace('_',' ') %}
+    {# 1) Extract and normalize the issuer using our filter #}
+    {% set issuer = (lines[2].split(':',1)[1].strip() if lines|length > 2 else '') | normalize_issuer %}
 
     {# 2) Extract remaining fields #}
     {% set name          = lines[1].split(':',1)[1].strip() if lines|length > 1 else '' %}
@@ -122,21 +106,19 @@
           <div>
             <span class="fw-semibold text-dark">Features:</span>
             <ul class="mt-2 mb-0 ps-3">
-              {% for feature in features %}
+              {% for feature in features[:-1] %}
                 <li class="text-body">{{ feature }}</li>
               {% endfor %}
             </ul>
           </div>
         {% endif %}
-        {# 3) Inline clickable link from message lines #}
+        
+        {# 3) This is the original hyperlink logic, now restored #}
         {% for line in lines %}
           {% if 'More info:' in line %}
             <div>
-              <a
-                href="{{ line.split('More info:',1)[1].strip() }}"
-                target="_blank"
-                style="color:#4f8cff; font-weight:600; text-decoration:underline;"
-              >
+              <a href="{{ line.split('More info:',1)[1].strip() }}" target="_blank"
+                 style="color:#4f8cff; font-weight:600; text-decoration:underline;">
                 View Card Details
               </a>
             </div>

@@ -72,6 +72,81 @@
             url.searchParams.set('sort_order', order);
             window.location.href = url.toString();
         }
+        /**
+         * Finds and formats the Gemini analysis text on the page.
+         */
+        function processAnalysisFormatting() {
+            const container = document.getElementById('analysis-content');
+            
+            // If the container or its text doesn't exist, do nothing.
+            if (!container || !container.textContent.trim()) {
+                return;
+            }
+
+            // 1. GET AND HIDE RAW TEXT
+            const rawText = container.textContent;
+            container.style.display = 'none'; // Hide the raw text to prevent flash of unformatted content
+            container.innerHTML = ''; // Clear the container
+
+            // 2. PARSE THE TEXT INTO SECTIONS
+            // The regex splits the text by two newlines followed by a bolded heading like "**Heading:**"
+            const sections = rawText.split(/\n\s*\n(?=\*\*[A-Za-z\s]+:\*\*)/);
+
+            sections.forEach(sectionText => {
+                const headingRegex = /\*\*(.*?):\*\*/;
+                const match = sectionText.match(headingRegex);
+
+                if (!match) return; // Skip if no heading is found
+
+                const heading = match[1];
+                const content = sectionText.substring(match[0].length).trim();
+
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'analysis-section';
+
+                // Use h5 to fit well within a Bootstrap card-body
+                const titleElement = document.createElement('h5');
+                titleElement.textContent = heading;
+                sectionDiv.appendChild(titleElement);
+                
+                // 3. CREATE FORMATTED HTML based on the section
+                if (heading === 'Card Recommendations') {
+                    const list = document.createElement('ul');
+                    list.className = 'recommendation-list';
+
+                    const items = content.split('\n').filter(line => line.trim().startsWith('*'));
+            
+                    items.forEach(item => {
+                        // Remove the leading '*' and any extra whitespace from the line
+                        const cleanItem = item.trim().substring(1).trim();
+                        
+                        // Now split the cleaned item into category and recommendation
+                        const [category, ...recommendationParts] = cleanItem.split(/:\s*/);
+                        const recommendation = recommendationParts.join(': ');
+                        
+                        // The category might still have asterisks for bolding, so we clean them here.
+                        const cleanCategory = category.replace(/\*\*/g, '').trim();
+
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `<strong>${cleanCategory}:</strong> ${recommendation}`;
+                        list.appendChild(listItem);
+                    });
+                    sectionDiv.appendChild(list);
+                } else {
+                    const p = document.createElement('p');
+                    p.textContent = content;
+                    sectionDiv.appendChild(p);
+                }
+
+                container.appendChild(sectionDiv);
+            });
+            
+            // 4. SHOW THE FORMATTED CONTENT
+            container.style.display = 'block';
+        }
+
+        // Run the script after the page has loaded
+        document.addEventListener('DOMContentLoaded', processAnalysisFormatting);
     </script>
 {% endblock %}
 
@@ -127,7 +202,6 @@
                     </div>
             </div>
         </div>
-        
 
     </div>
     <div class="container">
@@ -194,6 +268,35 @@
     {% else %}
         <p>No cards to display. Add cards from <a href="./browse_cards">HERE.</a></p>
     {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+
+            <div class="text-center my-5">
+                <h3>Spending Analysis</h3>
+                <p>Get AI-powered recommendations on how to maximize your credit card rewards based on your spending.</p>
+                <a href="{{ url_for('dashboard', action='analyze') }}" class="btn btn-primary btn-lg">
+                    Analyze My Spending
+                </a>
+            </div>
+
+
+            {% if analysis %}
+                <div class="card my-5 mx-auto" style="max-width: 800px;">
+                    <div class="card-header">
+                        <h4>Gemini's Analysis</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="analysis-content">{{ analysis }}</div>
+                    </div>
+                </div>
+            {% endif %}
+        
 </div>
 </div>
 {% endblock %}
