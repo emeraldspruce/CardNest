@@ -37,6 +37,7 @@
     const passwordInput = document.getElementById("password");
     const signupBtn = document.getElementById("signup-btn");
     const authStatus = document.querySelector(".auth-status");
+    const loginForm = document.getElementById("login-form");
 
     // --- HELPER FUNCTION TO CREATE SERVER SESSION ---
     // This function sends the token to Flask and handles the redirect
@@ -82,7 +83,7 @@
             // User is not logged in, do nothing, let them see the form.
             console.log('No active Firebase session.');
         }
-    }
+    });
     // Login
    loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
