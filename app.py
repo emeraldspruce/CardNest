@@ -44,6 +44,28 @@ def page_not_found(e):
 @app.route("/")
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    global db
+    if db is None:
+        db = Database()
+    if request.method == "POST":
+        data = request.get_json()
+        id_token = data.get("idToken")
+        try:
+            # Verify the ID token
+            decoded_token = auth.verify_id_token(id_token)
+            uid = decoded_token["uid"]
+            email = decoded_token.get("email")
+
+            # Optional: store in session
+            session.clear()
+            session["user"] = {
+                "id": uid,
+                "email": email,
+            }
+            db.add_user(uid, email)
+            print("User added!")
+        except Exception as e:
+            print(f"Login failed: {e}")
     return render_template("login.html", require_auth=False)
 
 # Formatting csv date 
@@ -98,8 +120,11 @@ def format_currency(value):
 def profile():
     return render_template("profile.html", require_auth=True)
 
-@app.route("/dashboard")
+@app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
+    global db
+    if not db:
+        db = Database()
     data = session.get("data", [])
     categorized_totals = defaultdict(float)
     net_balance = 0.0
@@ -128,7 +153,25 @@ def dashboard():
     
     #Trim net balance to 2 decimal places
     net_balance = round(net_balance, 2)
-    return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order, net_balance=net_balance, total_income=income_total, total_expenses=expense_total)
+
+    # Pull all current user cards
+    user_cards = db.get_user_cards(session["user"]["id"])
+    if request.method == "POST":
+        card_id = request.form.get('cardId')
+        db.remove_user_card(session["user"]["id"], card_id)
+    return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order, net_balance=net_balance, total_income=income_total, total_expenses=expense_total, cards=user_cards)
+
+@app.route("/browse_cards", methods=["GET", "POST"])
+def browse_cards():
+    global db
+    if db is None:
+        db = Database()
+    cards = db.get_cards()
+
+    if request.method == "POST":
+        card_id = request.form.get('cardId')
+        db.add_user_card(session["user"]["id"], card_id)
+    return render_template("browse_cards.html", cards=cards, require_auth=True)
 
 @app.route("/upload_page", methods=["GET", "POST"])
 def upload_page():
