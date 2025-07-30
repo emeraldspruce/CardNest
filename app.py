@@ -152,17 +152,37 @@ def dashboard():
     return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order, net_balance=net_balance, total_income=income_total, total_expenses=expense_total, cards=user_cards)
 
 @app.route("/browse_cards", methods=["GET", "POST"])
-@login_required
+@login_required # Make sure your route is protected
 def browse_cards():
-    global db
-    if db is None:
-        db = Database()
-    cards = db.get_cards()
-
     if request.method == "POST":
+        # This part handles ADDING a card
         card_id = request.form.get('cardId')
-        db.add_user_card(session["user"]["id"], card_id)
-    return render_template("browse_cards.html", cards=cards, require_auth=True)
+        user_id = session["user"]["id"]
+        db.add_user_card(user_id, card_id)
+        
+        # Redirect to prevent form resubmission on page refresh
+        # We include the search query to keep the filter active
+        search_query = request.args.get('q', '')
+        return redirect(url_for('browse_cards', q=search_query))
+
+    # This part handles DISPLAYING the cards (GET request)
+    search_query = request.args.get('q', '').lower()
+    all_cards = db.get_cards()
+    
+    if search_query:
+        # Filter the cards if a search query exists
+        filtered_cards = [
+            card for card in all_cards
+            if search_query in card['name'].lower() or search_query in card['issuer'].lower()
+        ]
+    else:
+        filtered_cards = all_cards
+
+    return render_template(
+        "browse_cards.html",
+        cards=filtered_cards,
+        search_query=search_query
+    )
 
 @app.route("/upload_page", methods=["GET", "POST"])
 @login_required
