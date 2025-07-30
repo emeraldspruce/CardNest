@@ -15,7 +15,7 @@ import pandas as pd
 from datetime import datetime
 from collections import defaultdict
 from functools import wraps
-
+from gemini_analysis import get_spending_recommendations
 
 app = Flask(__name__)
 load_dotenv()
@@ -112,44 +112,59 @@ def profile():
 @app.route("/dashboard", methods=["GET", "POST"])
 @login_required
 def dashboard():
-    global db
-    if not db:
-        db = Database()
     data = session.get("data", [])
     categorized_totals = defaultdict(float)
     net_balance = 0.0
     
-    #Get sorting params 
-    sort_column = request.args.get("sort_column", "Date") #Default to sorting by Date
-    sort_order = request.args.get("sort_order", "asc") #Default to ascending order
-    reversed = sort_order == "desc"
-    if sort_column == 'Amount':
-        data.sort(key=lambda x: float(x.get("Amount", 0)), reverse=(reversed))
-    elif sort_column == 'Date':
-        data.sort(
-        key=lambda x: datetime.strptime(x.get("Date", "1970-01-01"), '%Y-%m-%d'),
-        reverse=(reversed)
-    )
+    sort_column = request.args.get("sort_column", "Date")
+    sort_order = request.args.get("sort_order", "asc")
+    reversed_sort = sort_order == "desc"
+    
+    if sort_column == 'Amount' and data:
+        data.sort(key=lambda x: float(x.get("Amount", 0)), reverse=reversed_sort)
+    elif sort_column == 'Date' and data:
+        data.sort(key=lambda x: datetime.strptime(x.get("Date", "1970-01-01"), '%Y-%m-%d'), reverse=reversed_sort)
+
     for row in data:
         category = row.get("Category", "Uncategorized")
         amount = float(row.get("Amount", 0))
         categorized_totals[category] += amount
         net_balance += amount
+
     categories = list(categorized_totals.keys())
     amounts = [abs(categorized_totals[cat]) for cat in categories]
-    # Calculate income and expense totals
     income_total = sum(amount for cat, amount in categorized_totals.items() if amount > 0)
     expense_total = sum(abs(amount) for cat, amount in categorized_totals.items() if amount < 0)
-    
-    #Trim net balance to 2 decimal places
     net_balance = round(net_balance, 2)
-
-    # Pull all current user cards
     user_cards = db.get_user_cards(session["user"]["id"])
+
     if request.method == "POST":
         card_id = request.form.get('cardId')
         db.remove_user_card(session["user"]["id"], card_id)
-    return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order, net_balance=net_balance, total_income=income_total, total_expenses=expense_total, cards=user_cards)
+        return redirect(url_for('dashboard'))
+
+    # --- NEW LOGIC: Handle the Gemini analysis request ---
+    analysis_result = None
+    if request.args.get('action') == 'analyze':
+        if not data or not user_cards:
+            flash("Please upload a statement and add your cards before analyzing.", "warning")
+        else:
+            # Call the new function with the user's data
+            analysis_result = get_spending_recommendations(user_cards, data)
+    
+    return render_template(
+        "dashboard.html", 
+        data=data, 
+        categories=categories, 
+        amounts=amounts, 
+        sort_column=sort_column, 
+        sort_order=sort_order, 
+        net_balance=net_balance, 
+        total_income=income_total, 
+        total_expenses=expense_total, 
+        cards=user_cards,
+        analysis=analysis_result  # Pass the analysis result to the template
+    )
 
 @app.route("/browse_cards", methods=["GET", "POST"])
 @login_required # Make sure your route is protected
