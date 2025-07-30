@@ -1,7 +1,7 @@
 from collections import defaultdict
 
 from networkx import reverse
-from flask import Flask, render_template, abort, request, session, redirect, url_for, flash
+from flask import Flask, render_template, abort, request, session, redirect, url_for, flash, jsonify
 from dotenv import load_dotenv
 from database import Database 
 from werkzeug.utils import secure_filename 
@@ -14,6 +14,7 @@ from geminiCardOutput import get_recommended_card
 import pandas as pd
 from datetime import datetime
 from collections import defaultdict
+from functools import wraps
 
 
 app = Flask(__name__)
@@ -23,6 +24,14 @@ cred = credentials.Certificate("serviceAccountKey.json")
 firebase_admin.initialize_app(cred)
 db = None
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "user" not in session:
+            # If the user is not in the session, redirect to the login page
+            return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def init_app():
     '''Runs once at the start to initialize the app with any necessary configurations.'''
@@ -38,53 +47,38 @@ def page_not_found(e):
 @app.route("/")
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    global db
-    if db is None:
-        db = Database()
     if request.method == "POST":
         data = request.get_json()
-        id_token = data.get("idToken")
+        if not data or not data.get("idToken"):
+            return jsonify({"status": "error", "message": "idToken is missing."}), 400
+        
         try:
-            # Verify the ID token
+            id_token = data.get("idToken")
             decoded_token = auth.verify_id_token(id_token)
             uid = decoded_token["uid"]
             email = decoded_token.get("email")
 
-            # Optional: store in session
+            # Store user info in the session
             session.clear()
-            session["user"] = {
-                "id": uid,
-                "email": email,
-            }
-            db.add_user(uid, email)
-            print("User added!")
+            session["user"] = {"id": uid, "email": email}
+            session.permanent = True # Make the session last longer
+
+            # On success, return a JSON response
+            return jsonify({
+                "status": "success", 
+                "message": "Login successful!",
+                "redirect": url_for("dashboard")
+            })
         except Exception as e:
             print(f"Login failed: {e}")
-    return render_template("login.html", require_auth=False)
-
-# Formatting csv date 
-@app.template_filter("format_date")
-def format_date(value):
-    if isinstance(value, str):
-        #We assume date is in 'YYYY-MM-DD' format
-        try:
-            date = datetime.strptime(value, '%Y-%m-%d')
-            return date.strftime('%B %d, %Y')  # Format as 'Jul, 28, 2025'
-        except Exception:
-            return value
-    return value
-
-# Format csv dollar values
-@app.template_filter("format_currency")
-def format_currency(value):
-    try: 
-        if isinstance(value, (int, float)):
-            return f"${(value):,.2f}" #Already int or float so just format
-        elif isinstance(value, str):
-            return f"${(float(value)):.2f}"  # Convert string to float and format
-    except Exception:
-        return value
-    return value
+            return jsonify({"status": "error", "message": str(e)}), 401
+    
+    # If a user is already logged in, redirect them to the dashboard
+    if "user" in session:
+        return redirect(url_for("dashboard"))
+        
+    # For GET requests, show the login page
+    return render_template("login.html")
 
 # Formatting csv date 
 @app.template_filter("format_date")
@@ -111,10 +105,12 @@ def format_currency(value):
     return value
 
 @app.route("/profile")
+@login_required
 def profile():
     return render_template("profile.html", require_auth=True)
 
 @app.route("/dashboard", methods=["GET", "POST"])
+@login_required
 def dashboard():
     global db
     if not db:
@@ -156,6 +152,7 @@ def dashboard():
     return render_template("dashboard.html", require_auth=True, data=data, categories=categories, amounts=amounts, sort_column=sort_column, sort_order=sort_order, net_balance=net_balance, total_income=income_total, total_expenses=expense_total, cards=user_cards)
 
 @app.route("/browse_cards", methods=["GET", "POST"])
+@login_required
 def browse_cards():
     global db
     if db is None:
@@ -168,6 +165,7 @@ def browse_cards():
     return render_template("browse_cards.html", cards=cards, require_auth=True)
 
 @app.route("/upload_page", methods=["GET", "POST"])
+@login_required
 def upload_page():
     global db
     if db is None:
@@ -185,6 +183,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route("/upload_statement", methods=["POST"])
+@login_required
 def upload_statement():
     if 'file' not in request.files:
         flash("No file part")
@@ -218,6 +217,7 @@ def third_page():
     return render_template("third_page.html", require_auth=True)
 
 @app.route("/gemini_rec", methods=["GET", "POST"])
+@login_required
 def gemini_rec():
     global db
     if db is None:
@@ -231,6 +231,7 @@ def gemini_rec():
     return render_template("gemini_rec.html", require_auth=True)
 
 @app.route("/tips")
+@login_required
 def tips():
     return render_template("tips.html", require_auth=True)
 

@@ -28,100 +28,100 @@
 
 {% endblock %}
 {% block scripts %}
-<!-- Firebase compat libraries -->
+<script>
+    // Get references to DOM elements
+    const loginForm = document.getElementById("login-form");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const signupBtn = document.getElementById("signup-btn");
+    const authStatus = document.querySelector(".auth-status");
 
-    <script>
-    //See if user is  already logged in
+    // --- HELPER FUNCTION TO CREATE SERVER SESSION ---
+    // This function sends the token to Flask and handles the redirect
+    async function createServerSessionAndRedirect(user) {
+        // You can show a loading message if you want
+        authStatus.innerText = "Signing you in...";
+        authStatus.classList.remove('text-danger');
+
+        try {
+            const idToken = await user.getIdToken();
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken: idToken }),
+            });
+
+            const data = await response.json();
+
+            // Check if the server successfully created the session
+            if (response.ok && data.status === 'success') {
+                // NOW it's safe to redirect to the URL the server sent
+                window.location.href = data.redirect;
+            } else {
+                authStatus.innerText = data.message || "Server login failed.";
+                authStatus.classList.add('text-danger');
+            }
+        } catch (error) {
+            console.error('Error creating server session:', error);
+            authStatus.innerText = "A connection error occurred.";
+            authStatus.classList.add('text-danger');
+        }
+    }
+
+    // --- FIREBASE AUTH STATE LISTENER ---
+    // Checks if a user is already signed in on the browser
     auth.onAuthStateChanged((user) => {
-        if (user) {
-            window.location.href = "/dashboard"; // Redirect to dashboard if already logged in
+        const path = window.location.pathname;
+        if (user && (path === '/login' || path === '/')) {
+            // User is logged into Firebase and on the login page.
+            // Create the server session before doing anything else.
+            createServerSessionAndRedirect(user);
+        } else {
+            // User is not logged in, do nothing, let them see the form.
+            console.log('No active Firebase session.');
         }
     });
 
-    // Get DOM references
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const authStatus = document.querySelector(".auth-status");
-    const loginForm = document.getElementById("login-form");
-
-    // Firebase Err codes to user-friendly messages
-    function getFriendlyErrorMessage(code) {
-        switch (code) {
-            case 'auth/invalid-email':
-                return "Invalid email format.";
-            case 'auth/user-not-found':
-                return "No user found with this email.";
-            case 'auth/wrong-password':
-                return "Incorrect password.";
-            case 'auth/email-already-in-use':
-                return "Email is already in use.";
-            default:
-                return "An error occurred. Please try again.";
-        }
-    }
-    // Login
+    // --- FORM SUBMIT HANDLER FOR LOGIN ---
     loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const email = emailInput.value.trim();
         const password = passwordInput.value.trim();
         if (!email || !password) {
-            authStatus.innerHTML = "Please enter both email and password.";
+            authStatus.innerText = "Please enter both email and password.";
             return;
         }
+
         try {
-            const user = await auth.signInWithEmailAndPassword(email, password);
-            console.log("User logged in:", user);
-            const idToken = await user.user.getIdToken();
-            const response = await fetch("/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ idToken })
-            });
-            window.location.href = "/home";
+            const userCredential = await auth.signInWithEmailAndPassword(email, password);
+            // After successful Firebase login, create the server session
+            await createServerSessionAndRedirect(userCredential.user);
         } catch (err) {
-            authStatus.innerHTML = getFriendlyErrorMessage(err.code);
+            // Handle Firebase client-side errors (e.g., wrong password)
+            authStatus.innerText = `Login failed: ${err.message}`;
         }
     });
 
-    // Signup
-    document.getElementById("signup-btn").addEventListener("click", async () => {
+    // --- CLICK HANDLER FOR SIGNUP ---
+    signupBtn.addEventListener("click", async () => {
         const email = emailInput.value.trim();
         const password = passwordInput.value.trim();
         if (!email || !password) {
-            authStatus.innerHTML = "Please enter both email and password.";
+            authStatus.innerText = "Please enter both email and password to sign up.";
             return;
         }
+
         try {
-            const user = await auth.createUserWithEmailAndPassword(email, password);
-            const idToken = await user.user.getIdToken();
-            const response = await fetch("/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ idToken })
-            });
-            window.location.href = "/upload_page";
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            // After successful signup, create the server session
+            await createServerSessionAndRedirect(userCredential.user);
         } catch (err) {
-            authStatus.innerHTML = err.message;
+            // Handle Firebase client-side errors (e.g., email in use)
+            authStatus.innerText = `Signup failed: ${err.message}`;
         }
     });
 
-    // Forgot Password
-    document.getElementById("forgot-password").addEventListener("click", async () => {
-        const email = emailInput.value.trim();
-        if (!email) {
-            authStatus.innerHTML = "Please enter your email to reset password.";
-            return;
-        }
-        try {
-            await auth.sendPasswordResetEmail(email);
-            authStatus.innerHTML = "Password reset email sent.";
-            authStatus.classList.remove("text-danger");
-            authStatus.classList.add("text-success");
-        } catch (err) {
-            authStatus.innerHTML = err.message;
-        }
-    });
+    // Add your "Forgot Password" logic here if needed
+
 </script>
 {% endblock %}
