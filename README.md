@@ -21,7 +21,7 @@
 
 ## 🖥️ Live Demo
 
-🌐 [https://cardnest.onrender.com](https://cardnest.onrender.com)
+🌐 [https://cardnest.onrender.com/](https://cardnest.onrender.com/)
 
 ---
 
