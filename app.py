@@ -30,15 +30,6 @@ firebase_app = firebase_admin.initialize_app(cred)
 
 db = None
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if "user" not in session:
-            # If the user is not in the session, redirect to the login page
-            return redirect(url_for('login', next=request.url))
-        return f(*args, **kwargs)
-    return decorated_function
-
 def init_app():
     '''Runs once at the start to initialize the app with any necessary configurations.'''
     global db
@@ -78,10 +69,6 @@ def login():
         except Exception as e:
             print(f"Login failed: {e}")
             return jsonify({"status": "error", "message": str(e)}), 401
-    
-    # If a user is already logged in, redirect them to the dashboard
-    if "user" in session:
-        return redirect(url_for("dashboard"))
         
     # For GET requests, show the login page
     return render_template("login.html")
@@ -111,12 +98,10 @@ def format_currency(value):
     return value
 
 @app.route("/profile")
-@login_required
 def profile():
     return render_template("profile.html", require_auth=True)
 
 @app.route("/dashboard", methods=["GET", "POST"])
-@login_required
 def dashboard():
     global db
     if not db:
@@ -150,7 +135,6 @@ def dashboard():
     if request.method == "POST":
         card_id = request.form.get('cardId')
         db.remove_user_card(session["user"]["id"], card_id)
-        return redirect(url_for('dashboard'))
 
     # --- NEW LOGIC: Handle the Gemini analysis request ---
     analysis_result = None
@@ -176,7 +160,6 @@ def dashboard():
     )
 
 @app.route("/browse_cards", methods=["GET", "POST"])
-@login_required # Make sure your route is protected
 def browse_cards():
     if request.method == "POST":
         # This part handles ADDING a card
@@ -209,7 +192,6 @@ def browse_cards():
     )
 
 @app.route("/upload_page", methods=["GET", "POST"])
-@login_required
 def upload_page():
     global db
     if db is None:
@@ -227,7 +209,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.route("/upload_statement", methods=["POST"])
-@login_required
 def upload_statement():
     if 'file' not in request.files:
         flash("No file part")
@@ -261,7 +242,6 @@ def third_page():
     return render_template("third_page.html", require_auth=True)
 
 @app.route("/gemini_rec", methods=["GET", "POST"])
-@login_required
 def gemini_rec():
     global db
     if db is None:
@@ -275,7 +255,6 @@ def gemini_rec():
     return render_template("gemini_rec.html", require_auth=True)
 
 @app.route("/tips")
-@login_required
 def tips():
     return render_template("tips.html", require_auth=True)
 
