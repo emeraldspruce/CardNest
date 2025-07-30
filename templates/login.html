@@ -31,12 +31,6 @@
 <!-- Firebase compat libraries -->
 
     <script>
-    //See if user is  already logged in
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            window.location.href = "/dashboard"; // Redirect to dashboard if already logged in
-        }
-    });
 
     // Get DOM references
     const emailInput = document.getElementById("email");
@@ -60,30 +54,27 @@
         }
     }
     // Login
-    loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const email = emailInput.value.trim();
-        const password = passwordInput.value.trim();
-        if (!email || !password) {
-            authStatus.innerHTML = "Please enter both email and password.";
-            return;
-        }
-        try {
-            const user = await auth.signInWithEmailAndPassword(email, password);
-            console.log("User logged in:", user);
-            const idToken = await user.user.getIdToken();
-            const response = await fetch("/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ idToken })
-            });
-            window.location.href = "/home";
-        } catch (err) {
-            authStatus.innerHTML = getFriendlyErrorMessage(err.code);
-        }
-    });
+   loginForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+    if (!email || !password) {
+        authStatus.innerHTML = "Please enter both email and password.";
+        return;
+    }
+    try {
+        const user = await auth.signInWithEmailAndPassword(email, password);
+        const idToken = await user.user.getIdToken();
+        await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken })
+        });
+        window.location.href = "/dashboard";
+    } catch (err) {
+        authStatus.innerHTML = getFriendlyErrorMessage(err.code);
+    }
+});
 
     // Signup
     document.getElementById("signup-btn").addEventListener("click", async () => {

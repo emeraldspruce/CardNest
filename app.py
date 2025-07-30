@@ -122,6 +122,8 @@ def profile():
 
 @app.route("/dashboard", methods=["GET", "POST"])
 def dashboard():
+    if not "user" in session:
+        return redirect(url_for("login"))
     global db
     if not db:
         db = Database()
