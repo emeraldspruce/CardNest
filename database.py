@@ -202,7 +202,7 @@ class Database:
             ''', (user_id,))
             cards = cursor.fetchall()
             for card in cards:
-                print(card)
+                print(self.get_card_by_id(card["card_id"])["name"])
     
     def print_all_cards(self):
         """Print all credit cards in the database."""

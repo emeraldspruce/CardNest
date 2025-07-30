@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Browse Cards{% endblock %}
+
+{% block body %}
+  {% for card in cards %}
+    <div style="width:50%;border-radius:12px;box-shadow: 0 2px 8px #000000;margin:1rem;padding:0.4rem;">
+        <img src="./static/images/{{ card.issuer }}.jpg" alt="Picture of {{ card.name }} credit card" style="width:17rem;height:10rem;border-radius:12px;float:left;margin-right:1rem;" />
+        <div style="margin-left:0.2rem;">
+          <div style="flex:1;">
+              <h4>{{ card.name }}</h3>
+              <p>Issuer: {{ card.issuer }}</p>
+              <p>Annual Fee: ${{ card.annualFee }}</p>
+          </div>
+          <form method="POST" action="/browse_cards" style="display:inline;">
+            <input type="hidden" name="cardId" value="{{ card.cardId }}">
+            <button type="submit">Add Card</button>
+          </form>
+          <button onclick="window.location.href='{{ card.url }}'">Find Out More</button>
+        </div>
+    </div>
+  {% endfor %}
+{% endblock %}
