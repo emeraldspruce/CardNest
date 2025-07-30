@@ -230,6 +230,9 @@ def gemini_rec():
             return render_template("gemini_rec.html", message=output, require_auth=True)
     return render_template("gemini_rec.html", require_auth=True)
 
+@app.route("/tips")
+def tips():
+    return render_template("tips.html", require_auth=True)
 
 if __name__ == "__main__":
     app.run(debug=True)
