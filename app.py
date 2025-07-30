@@ -20,8 +20,14 @@ from gemini_analysis import get_spending_recommendations
 app = Flask(__name__)
 load_dotenv()
 app.secret_key = os.getenv("SECRET_KEY")
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
+firebase_service_account_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_JSON')
+if not firebase_service_account_json:
+    raise Exception("FIREBASE_SERVICE_ACCOUNT_JSON not found in env!")
+
+firebase_creds_dict = json.loads(firebase_service_account_json)
+cred = credentials.Certificate(firebase_creds_dict)
+firebase_app = firebase_admin.initialize_app(cred)
+
 db = None
 
 def login_required(f):
@@ -112,6 +118,9 @@ def profile():
 @app.route("/dashboard", methods=["GET", "POST"])
 @login_required
 def dashboard():
+    global db
+    if not db:
+        db = Database()
     data = session.get("data", [])
     categorized_totals = defaultdict(float)
     net_balance = 0.0
