@@ -25,7 +25,7 @@
           <div style="margin-left:0.2rem;">
               <div style="flex:1;">
                   <h4>{{ card.name }}</h4>
-                  <p>Issuer: {{ card.issuer }}</p>
+                  <p>Issuer: {{ card.issuer | normalize_issuer }}</p>
                   <p>Annual Fee: ${{ card.annualFee }}</p>
               </div>
               <form method="POST" action="{{ url_for('browse_cards', q=search_query) }}" style="display:inline;">

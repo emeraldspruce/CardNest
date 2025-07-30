@@ -255,5 +255,15 @@ def gemini_rec():
 def tips():
     return render_template("tips.html", require_auth=True)
 
+@app.template_filter("normalize_issuer")
+def normalize_issuer_name(name):
+    """
+    Converts an issuer string like 'AMERICAN_EXPRESS' to 'American Express'.
+    """
+    if not isinstance(name, str):
+        return name
+    # Capitalize each word and replace underscores with spaces
+    return ' '.join(word.capitalize() for word in name.split('_'))
+
 if __name__ == "__main__":
     app.run(debug=True)
